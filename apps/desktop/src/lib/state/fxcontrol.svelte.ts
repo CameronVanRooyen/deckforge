@@ -9,7 +9,6 @@ const IDLE: FxControlState = {
   pickup: null,
   padModes: ['hotCue', 'hotCue'],
   held: [null, null],
-  smartArming: [false, false],
   hud: null,
 };
 

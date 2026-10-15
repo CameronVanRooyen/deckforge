@@ -1,6 +1,6 @@
 use deckforge_common::{
     Band, BeatFxKind, Beatgrid, ColorFxKind, CrossfaderCurve, EqCurve, FxBands, FxTarget, FxTrigger, HotCue, PadVoice, ReleaseFxKind, SharedTrack,
-    SmartCfxPreset, TempoRange, HOT_CUE_SLOTS,
+    TempoRange, HOT_CUE_SLOTS,
 };
 
 #[derive(Debug, Clone)]
@@ -92,6 +92,4 @@ pub enum Command {
     /// SHIFT + FX ON/OFF: cancels the Beat FX and plays the selected Release FX on the Beat FX target.
     ReleaseFx,
     ReleaseFxConfig { kind: ReleaseFxKind, beats: f64 },
-    SmartCfx(bool),
-    SmartCfxPreset(SmartCfxPreset),
 }

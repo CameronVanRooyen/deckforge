@@ -207,7 +207,7 @@ impl DjmEq {
     }
 }
 
-/// Per-channel 3-band EQ shared by the FLX4 and on-screen knobs: `Eq` follows the DJM-900NXS2 EQ curve, `Isolator` kills fully.
+/// Per-channel 3-band EQ shared by the DDJ-400 and on-screen knobs: `Eq` follows the DJM-900NXS2 EQ curve, `Isolator` kills fully.
 #[derive(Debug, Clone, Copy)]
 pub struct ChannelEq {
     curve: EqCurve,

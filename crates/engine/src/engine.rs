@@ -267,8 +267,6 @@ impl RtEngine {
             Command::PadFxRelease { deck, kind, beats } => self.mixer.pad_release(deck, kind, beats),
             Command::ReleaseFx => self.mixer.fire_release(),
             Command::ReleaseFxConfig { kind, beats } => self.mixer.set_release_config(kind, beats),
-            Command::SmartCfx(on) => self.mixer.set_smart_cfx(on),
-            Command::SmartCfxPreset(preset) => self.mixer.set_smart_cfx_preset(preset),
         }
     }
 
@@ -290,7 +288,6 @@ impl RtEngine {
             FxTarget::Master => master_bpm.unwrap_or(DEFAULT_FX_BPM),
         };
         self.mixer.set_tempo_context(fx_bpm, channels);
-        self.mixer.set_channel_beats([self.decks[0].beat_position(), self.decks[1].beat_position()]);
     }
 
     /// Feeds the Beat FX the target deck's bar lines, places Ascend and Backwash on them and renders the Backwash swell.
@@ -557,7 +554,6 @@ impl RtEngine {
         snap.color_fx_params = self.mixer.color_fx_params();
         snap.pad_fx = [self.mixer.pad_fx_snapshot(0), self.mixer.pad_fx_snapshot(1)];
         snap.release_fx = self.mixer.release_fx_snapshot();
-        snap.smart_cfx = self.mixer.smart_cfx_snapshot();
         self.snapshot.publish();
     }
 }

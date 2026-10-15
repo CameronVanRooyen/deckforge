@@ -1,14 +1,14 @@
 use deckforge_common::{
     beat_fx_params, color_fx_params, db_to_gain, snap_beat_fx_beats_for, snap_release_fx_beats, Band, BeatFxKind, ColorFxKind, CrossfaderCurve, EqCurve, FxBands,
-    FxTarget, FxTrigger, PadVoice, ReleaseFxKind, SmartCfxPreset, BEAT_FX_PERCENT_DEFAULT, COLOR_FX_MAX_PARAMS, DECK_COUNT, RELEASE_FX_DEFAULT_BEATS,
+    FxTarget, FxTrigger, PadVoice, ReleaseFxKind, BEAT_FX_PERCENT_DEFAULT, COLOR_FX_MAX_PARAMS, DECK_COUNT, RELEASE_FX_DEFAULT_BEATS,
 };
 use deckforge_dsp::{
-    channel_fader_gain, crossfader_gains, soft_limit, BeatFx, ChannelEq, ColorFx, DjFilter, PeakMeter, ReleaseFx, SmartCfx, Smoothed, Transport,
+    channel_fader_gain, crossfader_gains, soft_limit, BeatFx, ChannelEq, ColorFx, DjFilter, PeakMeter, ReleaseFx, Smoothed, Transport,
 };
 
 use crate::command::MixerParam;
 use crate::deck::MAX_BLOCK;
-use crate::snapshot::{BeatFxSnapshot, ChannelSnapshot, MasterSnapshot, PadFxSnapshot, ReleaseFxSnapshot, SmartCfxSnapshot};
+use crate::snapshot::{BeatFxSnapshot, ChannelSnapshot, MasterSnapshot, PadFxSnapshot, ReleaseFxSnapshot};
 
 const TRIM_RANGE_DB: f32 = 12.0;
 const SMOOTH_MS: f32 = 15.0;
@@ -38,8 +38,6 @@ pub struct Channel {
     filter: DjFilter,
     color: ColorFx,
     color_kind: ColorFxKind,
-    smart: SmartCfx,
-    smart_on: bool,
     pad: BeatFx,
     pad_voice: Option<PadVoice>,
     release: ReleaseFx,
@@ -61,8 +59,6 @@ impl Channel {
             filter: DjFilter::new(sr),
             color: ColorFx::new(sr, seed),
             color_kind: ColorFxKind::Filter,
-            smart: SmartCfx::new(sr, seed.wrapping_mul(97)),
-            smart_on: false,
             pad: BeatFx::new(sr),
             pad_voice: None,
             release: ReleaseFx::new(sr),
@@ -72,10 +68,6 @@ impl Channel {
     }
 
     fn refresh_filter(&mut self) {
-        if self.smart_on {
-            self.filter.set(self.smart.filter_value());
-            return;
-        }
         let scale = match self.color_kind {
             ColorFxKind::Filter => 1.0,
             ColorFxKind::Space | ColorFxKind::Noise => 0.0,
@@ -107,11 +99,7 @@ impl Channel {
             }
             MixerParam::Filter(v) => {
                 self.filter_value = v.clamp(-1.0, 1.0);
-                if self.smart_on {
-                    self.smart.set_value(self.filter_value);
-                } else {
-                    self.color.set_value(self.filter_value);
-                }
+                self.color.set_value(self.filter_value);
                 self.refresh_filter();
             }
             MixerParam::Fader(v) => {
@@ -131,21 +119,8 @@ impl Channel {
             r[i] = yr;
         }
         self.color.process(l, r);
-        self.smart.process(l, r);
         self.filter.process_block(l, r);
         self.pad.process(l, r);
-    }
-
-    /// Switching either way starts from a centred knob, so nothing lurches.
-    fn set_smart(&mut self, on: bool) {
-        if on == self.smart_on {
-            return;
-        }
-        self.filter_value = 0.0;
-        self.color.set_value(0.0);
-        self.smart.set_value(0.0);
-        self.smart_on = on;
-        self.refresh_filter();
     }
 
     fn set_pad_voice(&mut self, voice: Option<PadVoice>, beat_position: Option<f64>) {
@@ -242,8 +217,6 @@ pub struct Mixer {
     release: ReleaseFx,
     release_kind: ReleaseFxKind,
     release_beats: f64,
-    smart_on: bool,
-    smart_preset: SmartCfxPreset,
 }
 
 impl Mixer {
@@ -289,8 +262,6 @@ impl Mixer {
             release: ReleaseFx::new(sample_rate),
             release_kind: ReleaseFxKind::default(),
             release_beats: RELEASE_FX_DEFAULT_BEATS,
-            smart_on: false,
-            smart_preset: SmartCfxPreset::default(),
         }
     }
 
@@ -322,8 +293,6 @@ impl Mixer {
             }
         }
         m.set_color_fx(self.color_fx);
-        m.set_smart_cfx_preset(self.smart_preset);
-        m.set_smart_cfx(self.smart_on);
         m.set_release_config(self.release_kind, self.release_beats);
         m.beat_fx.restore_band_sets(self.beat_fx.band_sets());
         m.beat_fx.restore_param_sets(self.beat_fx.param_sets());
@@ -426,15 +395,7 @@ impl Mixer {
         for (ch, bpm) in self.channels.iter_mut().zip(channel_bpm) {
             ch.bpm = bpm;
             ch.color.set_bpm(bpm as f32);
-            ch.smart.set_bpm(bpm);
             ch.pad.set_bpm(bpm as f32);
-        }
-    }
-
-    /// Each deck's beat position at the start of the next block, for grid-locked channel effects.
-    pub fn set_channel_beats(&mut self, beats: [Option<f64>; DECK_COUNT]) {
-        for (ch, beat) in self.channels.iter_mut().zip(beats) {
-            ch.smart.set_beat_position(beat);
         }
     }
 
@@ -470,25 +431,6 @@ impl Mixer {
         }
     }
 
-    pub fn set_smart_cfx(&mut self, on: bool) {
-        self.smart_on = on;
-        for ch in &mut self.channels {
-            ch.set_smart(on);
-        }
-    }
-
-    pub fn set_smart_cfx_preset(&mut self, preset: SmartCfxPreset) {
-        self.smart_preset = preset;
-        for ch in &mut self.channels {
-            ch.smart.set_preset(preset);
-            if ch.smart_on {
-                ch.filter_value = 0.0;
-                ch.smart.set_value(0.0);
-                ch.refresh_filter();
-            }
-        }
-    }
-
     pub fn pad_fx_snapshot(&self, deck: usize) -> PadFxSnapshot {
         self.channels[deck].pad_snapshot()
     }
@@ -506,10 +448,6 @@ impl Mixer {
             running: running.running(),
             progress: running.progress().unwrap_or(0.0),
         }
-    }
-
-    pub fn smart_cfx_snapshot(&self) -> SmartCfxSnapshot {
-        SmartCfxSnapshot { enabled: self.smart_on, preset: self.smart_preset }
     }
 
     fn settle_fx_target(&mut self) {

@@ -270,7 +270,7 @@
       <span class="sw"></span>
       <span>
         <b>Headphone mix handled by controller hardware</b>
-        <small>The FLX4 headphone MIX and LEVEL knobs control the cue. Turn this off to use the on-screen knobs.</small>
+        <small>The DDJ-400 headphone MIX and LEVEL knobs control the cue. Turn this off to use the on-screen knobs.</small>
       </span>
     </label>
     <div>

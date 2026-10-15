@@ -4,12 +4,12 @@
 
 # deckforge
 
-**A fast, native two-deck DJ app built for the Pioneer DJ DDJ-FLX4.**
+**A fast, native two-deck DJ app built for the Pioneer DJ DDJ-400.**
 Real-time Rust audio engine · GPU waveforms · Tauri 2 + Svelte 5 interface
 
-[![CI](https://github.com/CanadianMapleFarmer/deckforge/actions/workflows/ci.yml/badge.svg)](https://github.com/CanadianMapleFarmer/deckforge/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/CanadianMapleFarmer/deckforge?include_prereleases&sort=semver&color=4d6bff)](https://github.com/CanadianMapleFarmer/deckforge/releases)
-[![Downloads](https://img.shields.io/github/downloads/CanadianMapleFarmer/deckforge/total?color=ff4aa8)](https://github.com/CanadianMapleFarmer/deckforge/releases)
+[![CI](https://github.com/CameronVanRooyen/deckforge/actions/workflows/ci.yml/badge.svg)](https://github.com/CameronVanRooyen/deckforge/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/CameronVanRooyen/deckforge?include_prereleases&sort=semver&color=4d6bff)](https://github.com/CameronVanRooyen/deckforge/releases)
+[![Downloads](https://img.shields.io/github/downloads/CameronVanRooyen/deckforge/total?color=ff4aa8)](https://github.com/CameronVanRooyen/deckforge/releases)
 [![License](https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-1ee3ff)](#license)
 <br>
 [![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-0d0f17)](#download)
@@ -27,7 +27,7 @@ Real-time Rust audio engine · GPU waveforms · Tauri 2 + Svelte 5 interface
 
 ## Why deckforge
 
-deckforge is an original DJ performance app for two-deck sets. Audio runs in a native real-time engine (no WebAudio, no garbage collector in the audio path), waveforms are drawn on the GPU at display refresh rate, and the DDJ-FLX4 is mapped end to end — pads, FX, jogs and LEDs.
+deckforge is an original DJ performance app for two-deck sets. Audio runs in a native real-time engine (no WebAudio, no garbage collector in the audio path), waveforms are drawn on the GPU at display refresh rate, and the DDJ-400 mapping covers its pads, FX, jogs, mixer and LEDs.
 
 Your music files are only ever read, never modified.
 
@@ -45,7 +45,7 @@ Your music files are only ever read, never modified.
 
 **Mixer and effects**
 - Three-band EQ with two curves: a gentle DJM-style **EQ** curve (−26 dB) or a full-kill **Isolator**
-- Colour FX: filter, space, dub echo, crush, noise — plus **Smart CFX** macros
+- Colour FX: filter, space, dub echo, crush and noise
 - 17 beat-synced Beat FX (echo, ping pong, spiral, reverb with Classic / Tension voicing, flanger, phaser, roll, trans …)
 - Pad FX on each deck and one-shot Release FX (echo out, backspin, vinyl brake)
 
@@ -54,13 +54,13 @@ Your music files are only ever read, never modified.
 - Spotify playlist matching to your local files (Spotify audio is never captured)
 
 **Hardware**
-- Full Pioneer DJ **DDJ-FLX4** mapping with host-driven LED feedback, soft takeover and keepalive
-- Headphone cue routing on the FLX4's 4-channel audio interface
+- Pioneer DJ **DDJ-400** mapping with host-driven LED feedback and soft takeover
+- Master and headphone cue routing on the DDJ-400's four-channel audio interface
 - Complete [keyboard control](apps/desktop/KEYBOARD.md) when no controller is connected
 
 ## Download
 
-Grab the latest build from [**Releases**](https://github.com/CanadianMapleFarmer/deckforge/releases).
+Grab the latest build from [**Releases**](https://github.com/CameronVanRooyen/deckforge/releases).
 
 | Platform | File |
 |---|---|
@@ -84,7 +84,7 @@ sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchel
 ```
 
 ```bash
-git clone https://github.com/CanadianMapleFarmer/deckforge.git
+git clone https://github.com/CameronVanRooyen/deckforge.git
 cd deckforge/apps/desktop
 pnpm install
 pnpm tauri dev      # development build with hot reload
@@ -101,7 +101,7 @@ cargo clippy --workspace --all-targets
 cd apps/desktop && pnpm check && pnpm test
 ```
 
-The `deckforge-cli` crate has device and simulation checks (`devices`, `flx4-sim`, `bench`); `loopback` uses [BlackHole 16ch](https://existential.audio/blackhole/) on macOS.
+The `deckforge-cli` crate has device and simulation checks (`devices`, `ddj400-sim`, `bench`); `loopback` uses [BlackHole 16ch](https://existential.audio/blackhole/) on macOS.
 
 ## Project layout
 
@@ -111,17 +111,17 @@ crates/common          shared domain types
 crates/dsp             filters, EQ, effects, limiter, WSOLA key lock
 crates/analysis        decoding, BPM / beatgrid, key, phrases, waveform
 crates/engine          real-time two-deck engine, mixer, audio output
-crates/controller      MIDI service, DDJ-FLX4 mapping and LED feedback
+crates/controller      MIDI service, DDJ-400 mapping and LED feedback
 crates/gfx             wgpu waveform renderer
 crates/library         SQLite collection
 crates/spotify         Spotify playlist import (PKCE, user-supplied client ID)
 crates/cli             diagnostics and simulation tools
-docs/                  architecture, design notes, FLX4 MIDI reference, roadmap
+docs/                  architecture, design notes, DDJ-400 MIDI reference, roadmap
 ```
 
 ## Status
 
-deckforge is an early **0.x** release. It is used live with a DDJ-FLX4 on macOS; Windows and Linux builds are compiled and tested in CI but have seen less real-world use. See the [hardware checklist](docs/hardware-verification.md) and [roadmap](docs/roadmap/roadmap.md). Bug reports and feedback are very welcome.
+deckforge is an early **0.x** release. DDJ-400 support is being validated on macOS; Windows and Linux builds are compiled and tested in CI but have seen less real-world use. See the [hardware checklist](docs/hardware-verification.md) and [roadmap](docs/roadmap/roadmap.md). Bug reports and feedback are very welcome.
 
 ## License
 
@@ -131,5 +131,5 @@ Unless you state otherwise, any contribution you submit is dual-licensed as abov
 
 ## Disclaimer
 
-deckforge is an independent project and is not affiliated with, endorsed by or sponsored by AlphaTheta Corporation or Pioneer DJ. Pioneer DJ, DDJ-FLX4, DJM and rekordbox are trademarks of their respective owners and are used only to describe compatibility.
-The FLX4 mapping follows Pioneer DJ's published MIDI message list and hands-on testing; no rekordbox code, assets or data are included.
+deckforge is an independent project and is not affiliated with, endorsed by or sponsored by AlphaTheta Corporation or Pioneer DJ. Pioneer DJ, DDJ-400, DJM and rekordbox are trademarks of their respective owners and are used only to describe compatibility.
+The DDJ-400 mapping follows Pioneer DJ's published MIDI message list and hands-on testing; no rekordbox code, assets or data are included.

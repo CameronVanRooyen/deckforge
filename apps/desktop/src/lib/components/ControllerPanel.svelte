@@ -50,6 +50,10 @@
     { label: 'CUE', note: 0x0c },
     { label: 'SYNC', note: 0x58 },
     { label: 'HP CUE', note: 0x54 },
+    { label: 'SHIFT', note: 0x3f },
+    { label: 'LOOP IN', note: 0x10 },
+    { label: 'LOOP OUT', note: 0x11 },
+    { label: 'RELOOP', note: 0x4d },
   ];
 
   let xf = $state(8192);
@@ -111,14 +115,14 @@
           <span class="num">{fmtT(e.timeMs)}</span><span class="dir">{e.direction}</span><span class="mono">{bytesText(e.bytes)}</span><span>{e.summary}</span>
         </div>
       {:else}
-        <p class="empty">No MIDI traffic yet. Move a control on the FLX4, or use the virtual controller below.</p>
+        <p class="empty">No MIDI traffic yet. Move a control on the DDJ-400, or use the virtual controller below.</p>
       {/each}
     </div>
   </section>
 
   <section class="virtual">
-    <h3>Virtual FLX4</h3>
-    <p class="muted">Sends real FLX4 messages through the same path as the hardware.</p>
+    <h3>Virtual DDJ-400</h3>
+    <p class="muted">Sends DDJ-400 MIDI messages through the same mapping path as the hardware.</p>
     <div class="vdecks">
       {#each decks as d (d)}
         <div class="vd" data-deck={d}>

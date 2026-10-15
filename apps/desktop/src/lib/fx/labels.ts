@@ -6,7 +6,6 @@ import {
   type PadFxSlot,
   type PadMode,
   type ReleaseFxKind,
-  type SmartCfxPreset,
 } from '$lib/api';
 
 export const BEAT_FX_LABELS: Record<BeatFxKind, string> = {
@@ -55,20 +54,6 @@ export const RELEASE_FX_LABELS: Record<ReleaseFxKind, string> = {
   backspin: 'Backspin',
   vinylBrake: 'Vinyl Brake',
   rollOut: 'Roll Out',
-};
-
-export const SMART_CFX_LABELS: Record<SmartCfxPreset, string> = {
-  echoWash: 'Echo Wash',
-  riser: 'Riser',
-  space: 'Space',
-  crushChop: 'Crush & Chop',
-};
-
-export const SMART_CFX_SIDES: Record<SmartCfxPreset, [string, string]> = {
-  echoWash: ['Dark wash', 'Bright wash'],
-  riser: ['Sink', 'Rise'],
-  space: ['Dark space', 'Bright space'],
-  crushChop: ['Chop', 'Crush'],
 };
 
 export const PAD_MODE_LABELS: Record<PadMode, string> = {

@@ -1,51 +1,51 @@
-# DDJ-FLX4 hardware verification checklist
+# DDJ-400 hardware verification
 
-The FLX4 was **not connected** while the MVP was built. Everything below is implemented and tested against simulated MIDI and virtual audio devices; tick each item on the real controller.
+The controller is connected to the development Mac. The official AlphaTheta MIDI list and the live CoreMIDI port names were read before implementing this mapping.
 
-Tools: deckforge Settings → MIDI diagnostics (live in/out log), Settings → Audio (device, channels, callbacks, xruns), `cargo run -p deckforge-cli -- devices`.
+## Evidence collected
 
-## Connection
-- [ ] App detects the controller (toolbar shows FLX4 connected); MIDI port names recorded here: ______
-- [ ] Unplug while playing: app keeps running, status shows disconnected; replug: reconnects within ~2 s and LEDs resync.
-- [ ] Audio device appears as `DDJ-FLX4` with 4 output channels at 44.1/48 kHz; auto-selected on first launch.
-- [ ] Unplug audio while playing: status → lost, no crash; replug → resumes.
+- CoreMIDI input port: `DDJ-400`.
+- CoreMIDI output port: `DDJ-400`.
+- CoreAudio output: `DDJ-400 Audio Out`, four output channels at 44.1 kHz.
+- Live input included deck 1 pad `97 00 7F`, jog touch `90 36 7F`, jog motion around `B0 22 3F/41`, and high-resolution fader/tempo messages using CC pairs.
+- Deckforge uses the published channel map: deck controls on channels 1/2, FX on 5, global mixer/browser on 7, pads on 8–11.
+- The rebuilt app's diagnostics reported controller connected, input `DDJ-400`, output `DDJ-400`, and live MIDI traffic (986 input / 80 output messages at readback).
+- The rebuilt app's audio status was `Running` on `DDJ-400 Audio Out` at 44100 Hz, four channels, master-and-phones routing (master 1/2, phones 3/4), with a 256-frame callback, zero underruns/overruns, and zero stream errors.
+- `Headphone mix handled by controller hardware` was enabled. Preference persistence and hotplug fallback behavior are covered by desktop audio tests.
 
-## Audio routing (headphones on, master to speakers at LOW volume)
-- [ ] Deck A playing, fader up → heard on MASTER only.
-- [ ] Deck B fader down, CUE (headphone) on → heard in headphones only, not on master.
-- [ ] Crossfader fully to A does not mute deck B in headphones.
-- [ ] HEADPHONES MIX knob: does it blend master into phones with deckforge sending pure cue (hardware-phones mode ON, the default)? If not, switch hardware-phones OFF in settings and re-test.
-- [ ] MASTER LEVEL / HEADPHONES LEVEL knobs change volume in hardware (expected) — deckforge only displays them.
+## Checklist
 
-## Controls (watch MIDI log)
-- [ ] PLAY/CUE both decks (CDJ cue: set when paused, preview while held, return on release).
-- [ ] Jog: touch top + turn = scratch; edge = pitch bend; SHIFT + turn = fast search. Record ticks per revolution (sum of `value-0x40` over one turn): ____ (code assumes 720).
-- [ ] TEMPO fader: direction (+ at bottom), soft takeover after SYNC is released, SHIFT+SYNC cycles range.
-- [ ] Channel faders, crossfader, TRIM, EQ, CFX: smooth 14-bit response (check MSB/LSB order in log).
-- [ ] Pads: HOT CUE set/trigger, SHIFT+pad delete; BEAT JUMP; SHIFT+BEAT JUMP = BEAT LOOP.
-- [ ] LOOP IN/OUT, 4 BEAT/EXIT, CUE/LOOP CALL ◀ ▶ (halve/double while looping, beat jump otherwise).
-- [ ] BROWSE scroll/push, LOAD 1/2 (with playing-deck safeguard).
+### Controller connection and MIDI mapping
 
-## LEDs
-- [ ] PLAY blinks when paused, solid when playing; CUE blinks off-cue.
-- [ ] Hot cue pads light when set; mode buttons show the active pad mode (exclusive?).
-- [ ] SYNC, headphone CUE, loop LEDs; VU meters follow channel level.
-- [ ] LEDs turn off when quitting deckforge.
+- [x] Match the observed CoreMIDI port label `DDJ-400`.
+- [x] Confirm representative live pad, jog, tempo and fader messages.
+- [x] In Deckforge, confirm the toolbar and MIDI diagnostics report input and output `DDJ-400`.
+- [ ] Confirm both decks' transport, cue, sync, tempo, mixer faders, trim, EQ and headphone cue controls.
+- [ ] Confirm jog touch scratches, wheel-side motion bends, platter motion bends when untouched, and SHIFT + jog fast-searches.
+- [ ] Confirm loop-in/out, 4-beat loop, reloop/exit, loop scaling, cue/loop call and SHIFT actions.
+- [ ] Confirm all eight pad modes, both deck pad banks, and shifted pad actions.
+- [ ] Confirm Beat FX select, channel target selector, beat controls, SHIFT parameter/page actions, LEVEL/DEPTH and Release FX.
+- [ ] Confirm browser scroll/push, LOAD and SHIFT+LOAD eject actions.
 
-## Keepalive
-- [ ] With keepalive on (default), faders/knobs report positions right after connect. To compare without it, set `Flx4::keepalive = false` in `apps/desktop/src-tauri/src/lib.rs` (no UI toggle yet).
+### LED feedback
 
-## Phase 3 FX control (2026-10-14 build, not yet tried on the FLX4)
-Run with a track playing at low volume and the MIDI diagnostics log open. Expected results are what the code does; tick or note what the hardware really does.
-- [ ] FX ON/OFF LED: dark before deckforge connects; with Beat FX off it should light steadily, with it on it should blink (official footnote, polarity unverified). If inverted, note it.
-- [ ] PAD FX 1 (deck 1, then deck 2): the button lights at once and the pads light; pads 1-4 hold Echo / Ping Pong / Reverb / Roll on that deck only (the other deck stays dry); the held pad blinks.
-- [ ] Hold pad 1 and press BEAT ▶ / ◀: the echo time changes (the FX display between the deck cards shows the pad's beats); turn LEVEL/DEPTH while holding: nothing until the knob reaches about 70 %, then the pad's depth follows.
-- [ ] Pads 5-8: Echo Out, Backspin, Vinyl Brake, Roll Out on that deck, sound returns after the length.
-- [ ] SHIFT + PAD FX 1 pads: Flanger, Phaser, Trans, Filter Sweep, Down Echo, Up Echo, Spiral, Delay. Release a pad after letting go of SHIFT: the effect stops. Do the shifted pad LEDs show while SHIFT is held?
-- [ ] SHIFT + PAD FX 1 = PAD FX 2: pads set 1/8 ... 8 beats (Reverb: 10 ... 100 %) and switch the Beat FX on while held; SHIFT + pad picks Echo, Ping Pong, Reverb, Roll, Flanger, Phaser, Trans, Filter Sweep.
-- [ ] Switch pad mode while holding a Pad FX pad: the effect stops. Back to HOT CUE: hot cues work as before.
-- [ ] SHIFT + LEVEL/DEPTH: moves the effect's second parameter (Echo: feedback) after the knob catches up; the screen shows the parameter strip, ghost marker and arrow while it waits. Let go of SHIFT: LEVEL/DEPTH waits again until it meets the level.
-- [ ] SHIFT + BEAT ▶ / ◀: pages the parameter (one page per press, not two).
-- [ ] SHIFT + FX ON/OFF: the Beat FX stops and the Release FX chosen on screen plays once per press on the CH SELECT target; try all three types and CH 1 / CH 2 / 1&2.
-- [ ] SMART CFX: LED lights; each CFX knob does nothing until it passes the centre (LED blinks meanwhile), then left/right play the macro. SHIFT + SMART CFX: next preset (the FX display names it), knobs re-arm.
-- [ ] Do pad LEDs accept host blinking at ~4 Hz cleanly?
+- [ ] PLAY/CUE/SYNC/loop/channel-cue LEDs follow engine state.
+- [ ] Mode buttons show the active pad mode; hot-cue and FX pads reflect state.
+- [ ] Loaded-deck illumination updates on the DDJ-400.
+- [ ] Beat FX ON/OFF LED behavior matches the official NOTE ON flashing / NOTE OFF steady behavior.
+- [ ] LEDs clear or resynchronize after controller disconnect/reconnect.
+
+### Audio and headphones
+
+- [x] Identify `DDJ-400 Audio Out` with four output channels at 44.1 kHz.
+- [x] Confirm Deckforge selects it automatically while connected and routes Master to outputs 1/2 and Phones to 3/4.
+- [ ] With music at low volume, confirm Master is heard on the speaker outputs and PFL cue is heard on headphones.
+- [ ] Confirm physical headphone MIX and LEVEL knobs control the DDJ-400 headphone circuit when hardware headphone handling is enabled.
+- [x] Confirm saved headphone preference behavior in tests; runtime defaults hardware handling on for DDJ-400 when no preference is saved.
+- [ ] Unplug audio and confirm Deckforge restores the saved output or system default; reconnect and confirm DDJ-400 selection returns.
+
+## References
+
+- [AlphaTheta DDJ-400 MIDI message list](https://downloads.support.alphatheta.com/software_info/dj-controllers/DDJ-400/DDJ-400_MIDI_Message_List_E1.pdf)
+- [DDJ-400 Mac setup guide](https://forums.pioneerdj.com/hc/en-us/articles/360029307091-DDJ-400-Troubleshooting-Mac)
+- [DDJ-400 MIDI mapping evidence](research/ddj-400-midi.md)

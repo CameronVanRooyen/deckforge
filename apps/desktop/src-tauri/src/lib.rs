@@ -9,9 +9,10 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use deckforge_common::DECK_COUNT;
-use deckforge_controller::{AppAction, ControllerService, Flx4};
+use deckforge_controller::{AppAction, ControllerService, Ddj400};
 use deckforge_engine::{
-    create_engine, list_output_devices, AudioManager, Command, MixerParam, OutputRequest, SecondaryOutputRequest,
+    create_engine, list_output_devices, ActiveOutput, AudioManager, Command, MixerParam, OutputDeviceInfo, OutputRequest, Routing, RoutingMode,
+    SecondaryOutputRequest,
 };
 use deckforge_library::Library;
 use parking_lot::Mutex;
@@ -30,60 +31,196 @@ fn data_dir() -> std::path::PathBuf {
         .unwrap_or_else(|| dirs::data_dir().unwrap_or_else(std::env::temp_dir).join("deckforge"))
 }
 
-/// A connected DDJ-FLX4 wins, then the saved device, then the system default.
-/// Returns the request and whether it targets an FLX4.
-fn initial_output(library: &Library) -> (OutputRequest, bool) {
-    let devices = list_output_devices();
-    if let Some(flx4) = devices.iter().find(|d| is_flx4(&d.name)) {
-        return (flx4_request(library, &flx4.id), true);
-    }
-    (fallback_request(library, &devices), false)
+fn is_ddj400_audio(name: &str) -> bool {
+    name.to_ascii_uppercase().contains("DDJ-400")
 }
 
-fn is_flx4(name: &str) -> bool {
-    name.to_ascii_uppercase().contains("FLX4")
+fn ddj400_audio_device(devices: &[OutputDeviceInfo]) -> Option<&OutputDeviceInfo> {
+    devices.iter().find(|d| is_ddj400_audio(&d.name) && d.max_channels >= 4)
 }
 
-fn flx4_request(library: &Library, device_id: &str) -> OutputRequest {
-    library
-        .setting::<OutputRequest>("audio.output")
-        .filter(|saved| saved.device_id.as_deref() == Some(device_id))
-        .unwrap_or(OutputRequest { device_id: Some(device_id.to_string()), ..Default::default() })
+fn ddj400_routing() -> Routing {
+    Routing { mode: RoutingMode::MasterAndPhones, master: [0, 1], phones: [2, 3] }
 }
 
-fn fallback_request(library: &Library, devices: &[deckforge_engine::OutputDeviceInfo]) -> OutputRequest {
-    library
-        .setting::<OutputRequest>("audio.output")
-        .filter(|saved| {
-            saved.device_id.as_deref().is_none_or(|id| devices.iter().any(|d| d.id == id && !is_flx4(&d.name)))
+fn ddj400_request(saved: Option<OutputRequest>, device: &OutputDeviceInfo) -> OutputRequest {
+    let mut request = saved.filter(|r| r.device_id.as_deref() == Some(device.id.as_str())).unwrap_or_default();
+    request.device_id = Some(device.id.clone());
+    request.routing = Some(ddj400_routing());
+    request
+}
+
+fn fallback_request(saved: Option<OutputRequest>, devices: &[OutputDeviceInfo]) -> OutputRequest {
+    saved
+        .filter(|request| {
+            request.device_id.as_deref().is_none_or(|id| devices.iter().any(|d| d.id == id && !is_ddj400_audio(&d.name)))
         })
         .unwrap_or_default()
 }
 
-/// Moves output to the FLX4 when it is plugged in and back to the previous device when it is removed.
-fn follow_flx4(state: &AppState, was_present: &mut bool) {
+fn initial_output_for_devices(saved: Option<OutputRequest>, devices: &[OutputDeviceInfo]) -> (OutputRequest, bool) {
+    if let Some(device) = ddj400_audio_device(devices) {
+        return (ddj400_request(saved, device), true);
+    }
+    (fallback_request(saved, devices), false)
+}
+
+fn initial_output(library: &Library) -> (OutputRequest, bool) {
+    initial_output_for_devices(library.setting::<OutputRequest>("audio.output"), &list_output_devices())
+}
+
+fn use_hardware_phones(saved: Option<bool>) -> bool {
+    saved.unwrap_or(true)
+}
+
+fn output_change_request(
+    saved: Option<OutputRequest>,
+    devices: &[OutputDeviceInfo],
+    was_present: &mut bool,
+    active: Option<&ActiveOutput>,
+) -> Option<OutputRequest> {
+    let ddj = ddj400_audio_device(devices);
+    let arrived = ddj.is_some() && !*was_present;
+    let removed = ddj.is_none() && *was_present;
+    *was_present = ddj.is_some();
+    match (ddj, arrived, removed) {
+        (Some(device), true, _)
+            if !active.is_some_and(|a| is_ddj400_audio(&a.device_name) && a.routing == ddj400_routing()) =>
+        {
+            Some(ddj400_request(saved, device))
+        }
+        (None, _, true) => Some(fallback_request(saved, devices)),
+        _ => None,
+    }
+}
+
+/// Selects the DDJ-400's four-channel output while connected and restores the saved/system output on removal.
+fn follow_ddj400(state: &AppState, was_present: &mut bool) {
     let devices = list_output_devices();
-    let flx4 = devices.iter().find(|d| is_flx4(&d.name));
-    let arrived = flx4.is_some() && !*was_present;
-    let removed = flx4.is_none() && *was_present;
-    *was_present = flx4.is_some();
-    let on_flx4 = state.audio.status().active.as_ref().is_some_and(|a| is_flx4(&a.device_name));
-    let request = match flx4 {
-        Some(device) if arrived && !on_flx4 => {
-            log::info!("DDJ-FLX4 audio detected; switching output to {}", device.name);
-            if state.library.setting::<bool>("audio.hardwarePhones").is_none() {
-                state.engine.send(Command::HardwarePhones(true));
-            }
-            flx4_request(&state.library, &device.id)
+    let saved = state.library.setting::<OutputRequest>("audio.output");
+    let active = state.audio.status().active;
+    let Some(request) = output_change_request(saved, &devices, was_present, active.as_ref()) else { return };
+    if ddj400_audio_device(&devices).is_some() {
+        log::info!("DDJ-400 audio detected; switching to Master 1/2 and Phones 3/4");
+        if state.library.setting::<bool>("audio.hardwarePhones").is_none() {
+            state.engine.send(Command::HardwarePhones(true));
         }
-        None if removed => {
-            log::info!("DDJ-FLX4 audio removed; returning to the previous output");
-            fallback_request(&state.library, &devices)
-        }
-        _ => return,
-    };
+    } else {
+        log::info!("DDJ-400 audio removed; restoring the saved or system output");
+    }
     if let Err(e) = state.audio.open(request) {
         log::warn!("switching output failed: {e}");
+    }
+}
+
+#[cfg(test)]
+mod ddj400_audio_tests {
+    use super::*;
+
+    fn device(id: &str, name: &str, max_channels: u16, is_default: bool) -> OutputDeviceInfo {
+        OutputDeviceInfo { id: id.into(), name: name.into(), max_channels, sample_rates: vec![44_100], is_default }
+    }
+
+    fn ddj() -> OutputDeviceInfo {
+        device("ddj-id", "DDJ-400 Audio Out", 4, false)
+    }
+
+    fn active(device_id: &str, name: &str, channels: u16, routing: Routing) -> ActiveOutput {
+        ActiveOutput {
+            device_id: device_id.into(),
+            device_name: name.into(),
+            sample_rate: 44_100,
+            channels,
+            requested_buffer: Some(256),
+            routing,
+            sample_format: "f32".into(),
+        }
+    }
+
+    fn usb() -> OutputDeviceInfo {
+        device("usb-id", "USB Studio Output", 2, false)
+    }
+
+    #[test]
+    fn selects_four_channel_ddj_and_preserves_same_device_audio_preferences() {
+        let saved = OutputRequest {
+            device_id: Some("ddj-id".into()),
+            sample_rate: Some(44_100),
+            buffer_frames: Some(128),
+            routing: Some(Routing { mode: RoutingMode::MasterOnly, master: [0, 0], phones: [0, 0] }),
+        };
+        let (request, selected) = initial_output_for_devices(Some(saved), &[ddj()]);
+        assert!(selected);
+        assert_eq!(request.device_id.as_deref(), Some("ddj-id"));
+        assert_eq!(request.sample_rate, Some(44_100));
+        assert_eq!(request.buffer_frames, Some(128));
+        assert_eq!(request.routing, Some(ddj400_routing()));
+    }
+
+    #[test]
+    fn routes_master_and_phones_to_the_two_ddj_stereo_pairs() {
+        let request = ddj400_request(None, &ddj());
+        assert_eq!(request.device_id.as_deref(), Some("ddj-id"));
+        assert_eq!(request.routing, Some(ddj400_routing()));
+    }
+
+    #[test]
+    fn uses_saved_hardware_headphone_preference_and_defaults_on_for_ddj() {
+        assert!(use_hardware_phones(None));
+        assert!(use_hardware_phones(Some(true)));
+        assert!(!use_hardware_phones(Some(false)));
+    }
+
+    #[test]
+    fn ignores_a_ddj_named_output_without_four_channels() {
+        let devices = [device("ddj-id", "DDJ-400 Audio Out", 2, true), usb()];
+        let (request, selected) = initial_output_for_devices(None, &devices);
+        assert!(!selected);
+        assert_eq!(request.device_id, None, "system output remains selected");
+    }
+
+    #[test]
+    fn restores_saved_non_ddj_output_and_uses_system_fallback_when_needed() {
+        let saved = OutputRequest { device_id: Some("usb-id".into()), sample_rate: Some(48_000), buffer_frames: Some(256), routing: None };
+        let restored = fallback_request(Some(saved.clone()), &[usb()]);
+        assert_eq!(restored.device_id.as_deref(), Some("usb-id"));
+        assert_eq!(restored.sample_rate, Some(48_000));
+        assert_eq!(restored.buffer_frames, Some(256));
+
+        let ddj_saved = OutputRequest { device_id: Some("ddj-id".into()), ..OutputRequest::default() };
+        assert!(fallback_request(Some(ddj_saved), &[usb()]).device_id.is_none());
+        assert!(fallback_request(None, &[usb()]).device_id.is_none());
+    }
+
+    #[test]
+    fn hotplug_selects_ddj_then_restores_and_reselects_it() {
+        let saved = OutputRequest { device_id: Some("usb-id".into()), sample_rate: Some(48_000), ..OutputRequest::default() };
+        let mut present = false;
+        let usb_active = active("usb-id", "USB Studio Output", 2, Routing::for_channel_count(2));
+        assert!(output_change_request(Some(saved.clone()), &[usb()], &mut present, Some(&usb_active)).is_none());
+
+        let arrived = output_change_request(Some(saved.clone()), &[usb(), ddj()], &mut present, Some(&usb_active)).unwrap();
+        assert_eq!(arrived.device_id.as_deref(), Some("ddj-id"));
+        assert_eq!(arrived.routing, Some(ddj400_routing()));
+
+        let ddj_active = active("ddj-id", "DDJ-400 Audio Out", 4, ddj400_routing());
+        let removed = output_change_request(Some(saved), &[usb()], &mut present, Some(&ddj_active)).unwrap();
+        assert_eq!(removed.device_id.as_deref(), Some("usb-id"));
+
+        let reconnected = output_change_request(None, &[ddj()], &mut present, Some(&usb_active)).unwrap();
+        assert_eq!(reconnected.device_id.as_deref(), Some("ddj-id"));
+    }
+
+    #[test]
+    fn hotplug_corrects_a_ddj_already_open_with_the_wrong_routing() {
+        let mut present = false;
+        let wrong = active("ddj-id", "DDJ-400 Audio Out", 4, Routing { mode: RoutingMode::MasterOnly, master: [0, 1], phones: [0, 0] });
+        let corrected = output_change_request(None, &[ddj()], &mut present, Some(&wrong)).unwrap();
+        assert_eq!(corrected.routing, Some(ddj400_routing()));
+
+        present = false;
+        let correct = active("ddj-id", "DDJ-400 Audio Out", 4, ddj400_routing());
+        assert!(output_change_request(None, &[ddj()], &mut present, Some(&correct)).is_none(), "already correct route is not reopened");
     }
 }
 
@@ -105,7 +242,7 @@ fn spawn_state_pump(app: AppHandle) {
             let started = Instant::now();
             let mut last_status = Instant::now() - Duration::from_secs(5);
             let mut faders_initialised = false;
-            let mut flx4_present = list_output_devices().iter().any(|d| is_flx4(&d.name));
+            let mut ddj400_present = ddj400_audio_device(&list_output_devices()).is_some();
             let mut native = native_view::PublishState::default();
             let mut next_ui = Instant::now();
             loop {
@@ -129,7 +266,7 @@ fn spawn_state_pump(app: AppHandle) {
                             }
                         }
                     }
-                    follow_flx4(&state, &mut flx4_present);
+                    follow_ddj400(&state, &mut ddj400_present);
                     let _ = app.emit("controller://status", controller);
                     let _ = app.emit("audio://status", state.audio.status());
                 }
@@ -150,9 +287,8 @@ pub fn run() {
             let library = Arc::new(Library::open(&dir.join("library.sqlite"))?);
             let (handle, rt) = create_engine(ENGINE_RATE);
             let engine = Arc::new(handle);
-            if let Some(hw) = library.setting::<bool>("audio.hardwarePhones") {
-                engine.send(Command::HardwarePhones(hw));
-            }
+            let saved_hardware_phones = library.setting::<bool>("audio.hardwarePhones");
+            engine.send(Command::HardwarePhones(saved_hardware_phones.unwrap_or(false)));
             if let Some(curve) = library.setting("mixer.crossfaderCurve") {
                 engine.send(Command::CrossfaderCurve(curve));
             }
@@ -160,9 +296,9 @@ pub fn run() {
                 engine.send(Command::EqCurve(curve));
             }
             let audio = AudioManager::spawn(rt);
-            let (request, targets_flx4) = initial_output(&library);
-            if targets_flx4 && library.setting::<bool>("audio.hardwarePhones").is_none() {
-                engine.send(Command::HardwarePhones(true));
+            let (request, targets_ddj400) = initial_output(&library);
+            if targets_ddj400 {
+                engine.send(Command::HardwarePhones(use_hardware_phones(saved_hardware_phones)));
             }
             if let Err(e) = audio.open(request) {
                 log::warn!("audio output unavailable at startup: {e}");
@@ -172,7 +308,7 @@ pub fn run() {
             Box::leak(Box::new(deckforge_controller::watch_device_changes()));
             let handle_for_actions = app.handle().clone();
             let controller = ControllerService::spawn(
-                Box::new(Flx4::new()),
+                Box::new(Ddj400::new()),
                 engine.clone(),
                 Box::new(move |action: AppAction| {
                     let _ = handle_for_actions.emit("controller://app-action", action);

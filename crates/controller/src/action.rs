@@ -2,7 +2,7 @@ use deckforge_common::DECK_COUNT;
 use deckforge_engine::Command;
 use serde::Serialize;
 
-use crate::flx4::PadMode;
+use crate::ddj400::PadMode;
 
 /// What the LEVEL/DEPTH knob drives right now.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
@@ -37,8 +37,6 @@ pub enum FxHudControl {
     Release,
     PadFx,
     PadMode,
-    SmartCfx,
-    SmartPreset,
 }
 
 /// The latest FX hardware gesture; `seq` changes on every gesture so the UI can pop its overlay.
@@ -68,7 +66,6 @@ pub struct FxControlState {
     pub pickup: Option<FxPickup>,
     pub pad_modes: [PadMode; DECK_COUNT],
     pub held: [Option<HeldPad>; DECK_COUNT],
-    pub smart_arming: [bool; DECK_COUNT],
     pub hud: Option<FxHud>,
 }
 
@@ -79,6 +76,7 @@ pub enum AppAction {
     BrowseScroll { delta: i32 },
     BrowseToggleFocus,
     LoadSelected { deck: usize },
+    EjectDeck { deck: usize },
     /// Hardware knobs that act in the controller's own analog stage; surfaced for display only.
     HardwareKnob { name: &'static str, value: f32 },
     FxControl(FxControlState),

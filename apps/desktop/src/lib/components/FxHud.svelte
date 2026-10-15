@@ -84,7 +84,7 @@
       </div>
       <div class="frow">
         <span class="pm" data-deck="0"><b>A</b>{idle.pads[0]}</span>
-        <span class="cfx" class:smart={idle.smart}>{idle.smart ? 'Smart' : 'CFX'} {idle.cfx}</span>
+        <span class="cfx">CFX {idle.cfx}</span>
         <span class="pm" data-deck="1">{idle.pads[1]}<b>B</b></span>
       </div>
     </div>
@@ -107,9 +107,6 @@
   }
   .dock[data-tone='shot'] {
     --tone: var(--shot);
-  }
-  .dock[data-tone='smart'] {
-    --tone: var(--smart);
   }
   .dock[data-tone='deck'] {
     --tone: var(--deck, var(--fx));
@@ -461,9 +458,6 @@
   }
   .cfx {
     color: var(--faint);
-  }
-  .cfx.smart {
-    color: var(--smart);
   }
   @media (min-height: 821px) {
     .kinds li {

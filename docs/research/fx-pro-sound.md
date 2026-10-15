@@ -1,7 +1,7 @@
 # Professional FX sound: Pioneer/rekordbox behaviour, pro references and DSP recipes
 
 Research brief for deckforge. Covers Echo, Space, Reverb, Noise and the rest of the Beat FX and Sound Color FX set.
-Complements `fx-tension.md` (tension/build effect proposals) and `fx-flx4-control.md` (FLX4 control scheme); this document is about *how the existing effects should sound and behave*.
+Complements `fx-tension.md` (tension/build effect proposals) and `../design/fx-v2.md` (current DDJ-400 control scheme); this document is about *how the existing effects should sound and behave*.
 
 Evidence labels: **[Manual]** official manual text, **[Review]** press or reviewer, **[Forum]** user or support post, **[Ref]** DSP paper or vendor design note, **[Inf]** my inference or rule of thumb (not sourced). Numbers marked [Inf] are starting points to be tuned by ear.
 
@@ -41,7 +41,7 @@ The FDN skeleton (mutually prime delays 23-66 ms, Householder-style feedback, pe
 
 ### 2.2 Beat FX (DJM-900NXS2 manual; DJM-A9 and V10 differences noted)
 
-Controls: BEAT arrows (parameter 1), TIME knob (2), LEVEL/DEPTH knob (3), X-PAD (4). The DDJ-FLX4 only has BEAT arrows and LEVEL/DEPTH; it has no TIME knob or X-PAD [Manual: FLX4], so division stepping is the *only* time control on the user's hardware.
+Controls: BEAT arrows (parameter 1), TIME knob (2), LEVEL/DEPTH knob (3), X-PAD (4). The DDJ-400 exposes BEAT arrows and LEVEL/DEPTH, but no separate TIME knob or X-PAD, so division stepping is the physical time control; remaining parameters are available in Deckforge's FX UI [AlphaTheta DDJ-400 MIDI list].
 
 | Effect | Manual description | BEAT | TIME | LEVEL/DEPTH | X-PAD |
 |---|---|---|---|---|---|
@@ -98,13 +98,12 @@ No manual specifies it for Echo/Delay/Ping Pong. Evidence:
 
 Sources: [NXS2 manual](https://c3.zzounds.com/media/DJM-900NXS2_manual_EN-0703f22a06f23c5041e63da3db269aa6.pdf); [XDJ-AZ Sound Color FX](https://downloads.support.alphatheta.com/manuals/all-in-one-dj-systems/XDJ-AZ/html/en/000COV_en/Sound_Color_FX/Sound_Color_FX.htm). Centre is bypass on all; DJM-A9 added centre-lock to avoid over-sweeping [Review]. The A9 Crush is reportedly harsher than the NXS2's (a reviewer would avoid it in a club) [Review: DJ Gym], so "less harsh" is a defensible deckforge goal.
 
-### 2.6 FX FREQUENCY, X-PAD, SEND/RETURN, Release FX, Smart CFX
+### 2.6 FX FREQUENCY, X-PAD, SEND/RETURN and Release FX
 
 - **FX FREQUENCY HI/MID/LOW**: lit buttons choose the band(s) the Beat FX apply to; the unselected bands stay dry [Manual: NXS2 step 5; V10 steps]. DJ TechTools: for Echo, Ping Pong, Spiral and Helix, deselect LOW; it gets "overwhelming" otherwise. Phaser can go lows-only for a gritty bassline. Crossover frequencies are not given in the manuals I read (they list only isolator reference points) [Inf: use LR4 at about 250 Hz and 3.5 kHz].
 - **X-PAD**: touch turns the effect on, release turns it off; ON/OFF pressed during touch latches. Position changes the time/amount parameter. On Reverb it is the output filter [Manual].
 - **SEND/RETURN**: NXS2 offers AUX (parallel, mix as desired) and INSERT (series). V10 gives built-in parallel effects with Master Mix and the option to route the wet-only signal into another channel to be EQ'd and filtered like any input [Review]. This is the conceptual model for an "FX return channel" in deckforge.
-- **Release FX** (FLX4: SHIFT + BEAT FX ON/OFF): Vinyl Brake, Echo (echo-out), Back Spin in rekordbox; on the XDJ-RX3 more types, including build-up and ducking [Forum/Review: [We Are Crossfader](https://wearecrossfader.co.uk/blog/ddj-400-hidden-features/)].
-- **Smart CFX** (FLX4): eight macro presets (Phantom Echo, Reflect Echo, Mobius Echo, Vaporize, Noise Chopper, Cyber Jet, Cyber Pitch, Twister) that combine two or more effects on one knob [Review/Forum: [Pioneer support](https://support.pioneerdj.com/hc/en-us/articles/12185533301913-When-I-m-using-rekordbox-for-Mac-Windows-with-the-unit-certain-effects-turn-off-after-I-turn-on-Smart-CFX-Why)].
+- **Release FX** (DDJ-400: SHIFT + BEAT FX ON/OFF): Deckforge exposes Echo Out, Backspin and Vinyl Brake from the hardware and app [AlphaTheta DDJ-400 MIDI list].
 
 ## 3. Other pro references and what makes them sound professional
 
@@ -236,7 +235,7 @@ Parameter ranges below are *musical ranges to stay in*; values are starting poin
 
 ### 5.1 Echo (Beat FX)
 
-- **Divisions** offered by FLX4/rekordbox steps: 1/16, 1/8, 1/4, 1/2, 3/4, 1, 2, 4, 8, 16 beats (the user quoted 1/4, 1/2, 3/4, 1 "bar"; confirm they mean beats as Pioneer does; the design holds either way). Odd divisions (3/4) give the familiar dotted-eighth rhythm.
+- **Divisions** offered by rekordbox: 1/16, 1/8, 1/4, 1/2, 3/4, 1, 2, 4, 8, 16 beats (the user quoted 1/4, 1/2, 3/4, 1 "bar"; confirm they mean beats as Pioneer does; the design holds either way). Odd divisions (3/4) give the familiar dotted-eighth rhythm.
 - **Division change**: dual-tap crossfade 40 ms, quantised to 1/16 (section 4.1). No pitch deviation beyond +-5 cents.
 - **LEVEL**: 0 dry; at 0.5 about equal dry/wet; above 0.5 the original ducks to about 0.7 (keeps current `dry_duck` idea, but make the duck signal-driven: duck the *wet* 3-5 dB while dry is loud, and let it bloom in gaps).
 - **Feedback** `fb = 0.40 + 0.35 x level^1.2` (0.40-0.75), hard ceiling 0.92 during normal operation, higher only for Freeze/Dub throw. Echo-out tail 2-4 beats.
@@ -365,8 +364,8 @@ Suggested listening tests via `fx-demos` after each step: (a) drum loop + sub ba
 - DJM-V10 effects feature page - https://www.pioneerdj.com/en/product/features/mixer/djm-v10-effects/
 - DJM-TOUR1 manual (Pitch/Trans/Roll figures) - https://manuals.plus/m/a7678589c8c0f1bb7105f35557cbd7b7ad8bc0a42537f5af1dfde2c1928531fc
 - XDJ-AZ Sound Color FX - https://downloads.support.alphatheta.com/manuals/all-in-one-dj-systems/XDJ-AZ/html/en/000COV_en/Sound_Color_FX/Sound_Color_FX.htm
-- DDJ-FLX4 Instruction Manual - https://assets.ctfassets.net/q602vtcuu3w3/2vz7GMLHawLZBK6gWpCP9V/26bd62eef3eca3714ddb1d3396d30f7b/DDJ-FLX4_manual_EN.pdf
-- Pioneer DJ support: Smart CFX effect behaviour - https://support.pioneerdj.com/hc/en-us/articles/12185533301913-When-I-m-using-rekordbox-for-Mac-Windows-with-the-unit-certain-effects-turn-off-after-I-turn-on-Smart-CFX-Why
+- AlphaTheta, DDJ-400 MIDI Message List - https://downloads.support.alphatheta.com/software_info/dj-controllers/DDJ-400/DDJ-400_MIDI_Message_List_E1.pdf
+- AlphaTheta, DDJ-400 Mac audio setup - https://forums.pioneerdj.com/hc/en-us/articles/360029307091-DDJ-400-Troubleshooting-Mac
 - Pioneer forum: DJM-A9 weird Beat FX timing - https://forums.pioneerdj.com/hc/en-us/community/posts/18751628091545-DJM-A9-weird-Beat-FX-behaviour-timing
 - Pioneer forum: Echo effect and the channel fader - https://forums.pioneerdj.com/hc/en-us/community/posts/115000174526-Echo-effect-has-no-volume-fader-control
 

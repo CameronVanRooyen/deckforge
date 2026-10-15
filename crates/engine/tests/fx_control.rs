@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use deckforge_common::{BeatFxKind, Beatgrid, FxTarget, PadVoice, ReleaseFxKind, SmartCfxPreset, TrackAudio, HOT_CUE_SLOTS};
+use deckforge_common::{BeatFxKind, Beatgrid, FxTarget, PadVoice, ReleaseFxKind, TrackAudio, HOT_CUE_SLOTS};
 use deckforge_engine::{create_engine, Command, EngineHandle, LoadRequest, MixerParam, RtEngine, Routing};
 
 const SR: u32 = 48_000;
@@ -120,23 +120,4 @@ fn pad_one_shots_end_the_voice_and_report_progress() {
     assert_eq!(snap.pad_fx[1].release, Some(ReleaseFxKind::Backspin));
     assert!(snap.pad_fx[1].release_progress > 0.0);
     assert_eq!(snap.pad_fx[0].release, None);
-}
-
-#[test]
-fn smart_cfx_takes_over_the_cfx_knob_from_centre() {
-    let (h, mut rt) = rig();
-    h.send(Command::Mixer { channel: 0, param: MixerParam::Filter(-0.8) });
-    let _ = run(&mut rt, 0.2);
-    assert!(h.snapshot().channels[0].filter < -0.5);
-    h.send(Command::SmartCfxPreset(SmartCfxPreset::CrushChop));
-    h.send(Command::SmartCfx(true));
-    let _ = run(&mut rt, 0.3);
-    let snap = h.snapshot();
-    assert!(snap.smart_cfx.enabled && snap.smart_cfx.preset == SmartCfxPreset::CrushChop);
-    assert_eq!(snap.channels[0].filter, 0.0, "starts centred");
-    let centred = run(&mut rt, 0.5);
-    h.send(Command::Mixer { channel: 0, param: MixerParam::Filter(-1.0) });
-    let _ = run(&mut rt, 0.1);
-    let chopped = run(&mut rt, 0.5);
-    assert!(amplitude(&chopped, A_HZ) < amplitude(&centred, A_HZ) * 0.7, "left side chops deck A");
 }

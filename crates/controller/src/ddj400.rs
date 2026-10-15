@@ -1,8 +1,8 @@
-//! Pioneer DJ DDJ-FLX4 mapping, written from the official MIDI message list
-//! (see docs/research/ddj-flx4-midi.md for every byte value and its provenance).
+//! Pioneer DJ DDJ-400 mapping, written from the official MIDI message list
+//! (see docs/research/ddj-400-midi.md for every byte value and its provenance).
 
 use std::collections::HashMap;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use deckforge_common::{
     beat_fx_knob_params, beat_fx_params, snap_beat_fx_beats_for, step_beat_fx_percent, Band, BeatFxKind, FxTarget, PadFxAction, PadVoice,
@@ -14,15 +14,15 @@ use crate::action::{Action, AppAction, FxControlState, FxHud, FxHudControl, FxKn
 use crate::mapping::{ControllerMapping, MidiOut};
 
 const NOTE_ON: u8 = 0x90;
+const NOTE_OFF: u8 = 0x80;
 const CC: u8 = 0xB0;
 const GLOBAL_CH: u8 = 6;
-const FX_CH_1: u8 = 4;
-const FX_CH_2: u8 = 5;
+const FX_CH: u8 = 4;
 const ON: u8 = 0x7F;
 
 mod note {
     pub const PLAY: u8 = 0x0B;
-    pub const PLAY_SHIFT: u8 = 0x0E;
+    pub const PLAY_SHIFT: u8 = 0x47;
     pub const CUE: u8 = 0x0C;
     pub const CUE_SHIFT: u8 = 0x48;
     pub const SHIFT: u8 = 0x3F;
@@ -33,8 +33,9 @@ mod note {
     pub const LOOP_IN_SHIFT: u8 = 0x4C;
     pub const LOOP_OUT: u8 = 0x11;
     pub const LOOP_OUT_SHIFT: u8 = 0x4E;
-    pub const BEAT4: u8 = 0x4D;
-    pub const BEAT4_SHIFT: u8 = 0x50;
+    pub const LOOP_IN_4BEAT: u8 = 0x14;
+    pub const RELOOP_EXIT: u8 = 0x4D;
+    pub const RELOOP_EXIT_SHIFT: u8 = 0x50;
     pub const CALL_LEFT: u8 = 0x51;
     pub const CALL_LEFT_SHIFT: u8 = 0x3E;
     pub const CALL_RIGHT: u8 = 0x53;
@@ -47,16 +48,19 @@ mod note {
     pub const FADER_START_CUE: u8 = 0x52;
     pub const VINYL: u8 = 0x17;
     pub const MODE_HOT_CUE: u8 = 0x1B;
-    pub const MODE_PAD_FX1: u8 = 0x1E;
+    pub const MODE_PAD_FX1: u8 = 0x6D;
     pub const MODE_BEAT_JUMP: u8 = 0x20;
     pub const MODE_SAMPLER: u8 = 0x22;
     pub const MODE_KEYBOARD: u8 = 0x69;
     pub const MODE_PAD_FX2: u8 = 0x6B;
-    pub const MODE_BEAT_LOOP: u8 = 0x6D;
+    pub const MODE_BEAT_LOOP: u8 = 0x1E;
     pub const MODE_KEY_SHIFT: u8 = 0x6F;
     pub const BROWSE_PUSH: u8 = 0x41;
+    pub const BROWSE_PUSH_SHIFT: u8 = 0x42;
     pub const LOAD_1: u8 = 0x46;
     pub const LOAD_2: u8 = 0x47;
+    pub const LOAD_1_SHIFT: u8 = 0x68;
+    pub const LOAD_2_SHIFT: u8 = 0x7A;
     pub const FX_SELECT: u8 = 0x63;
     pub const FX_SELECT_SHIFT: u8 = 0x64;
     pub const FX_BEAT_LEFT: u8 = 0x4A;
@@ -67,8 +71,7 @@ mod note {
     pub const FX_BEAT_RIGHT_SHIFT: u8 = 0x6B;
     pub const FX_CH_SELECT_1: u8 = 0x10;
     pub const FX_CH_SELECT_2: u8 = 0x11;
-    pub const SMART_CFX: u8 = 0x00;
-    pub const SMART_CFX_SHIFT: u8 = 0x08;
+    pub const FX_CH_SELECT_MASTER: u8 = 0x14;
 }
 
 mod cc {
@@ -82,7 +85,6 @@ mod cc {
     pub const JOG_VINYL: u8 = 0x22;
     pub const JOG_PLATTER: u8 = 0x23;
     pub const JOG_SHIFT: u8 = 0x29;
-    pub const VU: u8 = 0x02;
     pub const MASTER_LEVEL: u8 = 0x08;
     pub const PHONES_MIX: u8 = 0x0C;
     pub const PHONES_LEVEL: u8 = 0x0D;
@@ -96,17 +98,12 @@ mod cc {
     pub const LSB_OFFSET: u8 = 0x20;
 }
 
-/// Unofficial position-query/keepalive observed from rekordbox (docs/research/ddj-flx4-midi.md §6).
-pub const KEEPALIVE_SYSEX: [u8; 12] = [0xF0, 0x00, 0x40, 0x05, 0x00, 0x00, 0x04, 0x05, 0x00, 0x50, 0x02, 0xF7];
-const KEEPALIVE_INTERVAL: Duration = Duration::from_millis(200);
 const PAD_STATUS: [[u8; 2]; DECK_COUNT] = [[0x97, 0x98], [0x99, 0x9A]];
 const BEAT_JUMP_PADS: [f64; 8] = [-1.0, 1.0, -2.0, 2.0, -4.0, 4.0, -8.0, 8.0];
 const BEAT_LOOP_PADS: [f64; 8] = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0];
 const CALL_JUMP_BEATS: f64 = 4.0;
 const TAKEOVER_THRESHOLD: f64 = 0.03;
-const CFX_CENTRE: f64 = 0.02;
 const PAD_BLINK_MS: u128 = 125;
-const SLOW_BLINK_MS: u128 = 250;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -226,13 +223,11 @@ enum KnobKey {
     Pad(usize),
 }
 
-pub struct Flx4 {
+pub struct Ddj400 {
     decks: [DeckState; DECK_COUNT],
     hires: HashMap<(u8, u8), HiRes>,
     leds: HashMap<(u8, u8), u8>,
     pending: Vec<MidiOut>,
-    fx_switch: [bool; 2],
-    fx_switch_seen: bool,
     fx_notes_down: [bool; 128],
     focus: [Option<usize>; BeatFxKind::ALL.len()],
     knob: Option<f64>,
@@ -240,18 +235,14 @@ pub struct Flx4 {
     knob_engaged: bool,
     gate: Option<(usize, usize)>,
     press_order: u64,
-    cfx: [Option<f64>; DECK_COUNT],
-    cfx_armed: [bool; DECK_COUNT],
     hud: Option<FxHud>,
     reported: Option<FxControlState>,
-    last_keepalive: Option<Instant>,
-    pub keepalive: bool,
     pub vinyl_mode: bool,
     /// When true, MASTER LEVEL / HEADPHONES MIX / LEVEL drive the software mixer instead of being display-only.
     pub software_monitor_knobs: bool,
 }
 
-impl Default for Flx4 {
+impl Default for Ddj400 {
     fn default() -> Self {
         Self::new()
     }
@@ -264,7 +255,7 @@ fn shifted(n: u8) -> u8 {
         note::SYNC => note::SYNC_SHIFT,
         note::LOOP_IN => note::LOOP_IN_SHIFT,
         note::LOOP_OUT => note::LOOP_OUT_SHIFT,
-        note::BEAT4 => note::BEAT4_SHIFT,
+        note::RELOOP_EXIT => note::RELOOP_EXIT_SHIFT,
         note::PFL => note::PFL_SHIFT,
         other => other,
     }
@@ -292,15 +283,13 @@ pub fn vu_value(peak: f32) -> u8 {
     127
 }
 
-impl Flx4 {
+impl Ddj400 {
     pub fn new() -> Self {
-        let mut flx4 = Self {
+        let mut ddj400 = Self {
             decks: std::array::from_fn(|_| DeckState { beat_jump_scale: 1.0, ..Default::default() }),
             hires: HashMap::new(),
             leds: HashMap::new(),
             pending: Vec::new(),
-            fx_switch: [false; 2],
-            fx_switch_seen: false,
             fx_notes_down: [false; 128],
             focus: [None; BeatFxKind::ALL.len()],
             knob: None,
@@ -308,17 +297,13 @@ impl Flx4 {
             knob_engaged: true,
             gate: None,
             press_order: 0,
-            cfx: [None; DECK_COUNT],
-            cfx_armed: [true; DECK_COUNT],
             hud: None,
             reported: None,
-            last_keepalive: None,
-            keepalive: true,
             vinyl_mode: true,
             software_monitor_knobs: false,
         };
-        flx4.reported = Some(flx4.fx_control(&EngineSnapshot::default()));
-        flx4
+        ddj400.reported = Some(ddj400.fx_control(&EngineSnapshot::default()));
+        ddj400
     }
 
     pub fn pad_mode(&self, deck: usize) -> PadMode {
@@ -349,7 +334,7 @@ impl Flx4 {
                 self.decks[deck].shift = p;
                 vec![]
             }
-            (note::PLAY, true) => e(Command::TogglePlay { deck }),
+            (note::PLAY | note::PLAY_SHIFT, true) => e(Command::TogglePlay { deck }),
             (note::CUE, true) => e(Command::CueDown { deck }),
             (note::CUE, false) => e(Command::CueUp { deck }),
             (note::CUE_SHIFT, true) => e(Command::SeekSecs { deck, secs: 0.0 }),
@@ -361,17 +346,11 @@ impl Flx4 {
             }
             (note::SYNC_LONG, true) => e(Command::SetMasterDeck { deck }),
             (note::LOOP_IN, true) => e(Command::LoopIn { deck }),
+            (note::LOOP_IN_4BEAT, true) => e(Command::BeatLoop { deck, beats: 4.0 }),
             (note::LOOP_OUT, true) => e(Command::LoopOut { deck }),
             (note::LOOP_IN_SHIFT, true) => e(Command::LoopScale { deck, factor: 0.5 }),
             (note::LOOP_OUT_SHIFT, true) => e(Command::LoopScale { deck, factor: 2.0 }),
-            (note::BEAT4, true) => {
-                if ds.loop_active {
-                    e(Command::ReloopExit { deck })
-                } else {
-                    e(Command::BeatLoop { deck, beats: 4.0 })
-                }
-            }
-            (note::BEAT4_SHIFT, true) => e(Command::ReloopExit { deck }),
+            (note::RELOOP_EXIT | note::RELOOP_EXIT_SHIFT, true) => e(Command::ReloopExit { deck }),
             (note::CALL_LEFT, true) if ds.loop_active => e(Command::LoopScale { deck, factor: 0.5 }),
             (note::CALL_RIGHT, true) if ds.loop_active => e(Command::LoopScale { deck, factor: 2.0 }),
             (note::CALL_LEFT, true) => e(Command::BeatJump { deck, beats: -CALL_JUMP_BEATS }),
@@ -600,8 +579,8 @@ impl Flx4 {
         let sw = self.software_monitor_knobs;
         match msb {
             cc::CROSSFADER => engine(Command::Crossfader(v)),
-            cc::CFX_1 => self.cfx_knob(0, v as f64),
-            cc::CFX_2 => self.cfx_knob(1, v as f64),
+            cc::CFX_1 => engine(Command::Mixer { channel: 0, param: MixerParam::Filter((v - 0.5) * 2.0) }),
+            cc::CFX_2 => engine(Command::Mixer { channel: 1, param: MixerParam::Filter((v - 0.5) * 2.0) }),
             cc::MASTER_LEVEL => monitor("masterLevel", Command::MasterLevel(v), sw),
             cc::PHONES_MIX => monitor("headphoneMix", Command::HeadphoneMix(v), sw),
             cc::PHONES_LEVEL => monitor("headphoneLevel", Command::HeadphoneLevel(v), sw),
@@ -609,27 +588,29 @@ impl Flx4 {
         }
     }
 
-    fn global_note(&mut self, n: u8, pressed: bool, snap: &EngineSnapshot) -> Vec<Action> {
+    fn global_note(&mut self, n: u8, pressed: bool, _snap: &EngineSnapshot) -> Vec<Action> {
         if !pressed {
             return vec![];
         }
         match n {
-            note::SMART_CFX => self.smart_cfx(false, snap),
-            note::SMART_CFX_SHIFT => self.smart_cfx(true, snap),
-            note::BROWSE_PUSH => vec![Action::App(AppAction::BrowseToggleFocus)],
+            note::BROWSE_PUSH | note::BROWSE_PUSH_SHIFT => vec![Action::App(AppAction::BrowseToggleFocus)],
             note::LOAD_1 => vec![Action::App(AppAction::LoadSelected { deck: 0 })],
             note::LOAD_2 => vec![Action::App(AppAction::LoadSelected { deck: 1 })],
+            note::LOAD_1_SHIFT => vec![Action::App(AppAction::EjectDeck { deck: 0 })],
+            note::LOAD_2_SHIFT => vec![Action::App(AppAction::EjectDeck { deck: 1 })],
             _ => vec![],
         }
     }
 
-    /// SHIFTed FX buttons arrive on both `0x94` and `0x95` (verified); a note already down is the twin and is dropped.
-    fn fx_note(&mut self, channel: u8, n: u8, pressed: bool, snap: &EngineSnapshot) -> Vec<Action> {
-        match n {
-            note::FX_CH_SELECT_1 if channel == FX_CH_1 => return self.fx_switch_changed(0, pressed),
-            note::FX_CH_SELECT_2 if channel == FX_CH_2 => return self.fx_switch_changed(1, pressed),
-            note::FX_CH_SELECT_1 | note::FX_CH_SELECT_2 => return vec![],
-            _ => {}
+    /// DDJ-400 Beat FX controls and the CH SELECT switch all use MIDI channel 5.
+    fn fx_note(&mut self, n: u8, pressed: bool, snap: &EngineSnapshot) -> Vec<Action> {
+        if pressed {
+            match n {
+                note::FX_CH_SELECT_1 => return vec![Action::Engine(Command::BeatFxTarget(FxTarget::A))],
+                note::FX_CH_SELECT_2 => return vec![Action::Engine(Command::BeatFxTarget(FxTarget::B))],
+                note::FX_CH_SELECT_MASTER => return vec![Action::Engine(Command::BeatFxTarget(FxTarget::Master))],
+                _ => {}
+            }
         }
         let down = &mut self.fx_notes_down[(n & 0x7F) as usize];
         if !pressed {
@@ -657,19 +638,14 @@ impl Flx4 {
                 vec![]
             }
             note::FX_ON | note::FX_ON_SHIFT => {
-                let mut actions = Vec::new();
-                if !self.fx_switch_seen && channel == FX_CH_2 {
-                    actions.push(Action::Engine(Command::BeatFxTarget(FxTarget::B)));
-                }
                 if n == note::FX_ON {
                     self.gesture(FxHudControl::OnOff, None);
-                    actions.push(Action::Engine(Command::BeatFxEnabled(!fx.enabled)));
+                    vec![Action::Engine(Command::BeatFxEnabled(!fx.enabled))]
                 } else {
                     self.gesture(FxHudControl::Release, None);
                     self.gate = None;
-                    actions.push(Action::Engine(Command::ReleaseFx));
+                    vec![Action::Engine(Command::ReleaseFx)]
                 }
-                actions
             }
             _ => vec![],
         }
@@ -840,47 +816,8 @@ impl Flx4 {
             pickup,
             pad_modes: [self.decks[0].pad_mode, self.decks[1].pad_mode],
             held: std::array::from_fn(|d| self.decks[d].latest_held().map(|(pad, h)| HeldPad { pad: pad as u8, shift: h.shift, mode: h.mode })),
-            smart_arming: [!self.cfx_armed[0], !self.cfx_armed[1]],
             hud: self.hud,
         }
-    }
-
-    fn smart_cfx(&mut self, preset: bool, snap: &EngineSnapshot) -> Vec<Action> {
-        self.cfx_armed = std::array::from_fn(|ch| self.cfx[ch].is_some_and(|v| (v - 0.5).abs() * 2.0 <= CFX_CENTRE));
-        if preset {
-            self.gesture(FxHudControl::SmartPreset, None);
-            vec![Action::Engine(Command::SmartCfxPreset(snap.smart_cfx.preset.next()))]
-        } else {
-            self.gesture(FxHudControl::SmartCfx, None);
-            vec![Action::Engine(Command::SmartCfx(!snap.smart_cfx.enabled))]
-        }
-    }
-
-    /// CFX knob; after a Smart CFX switch it is ignored until it passes the centre so the sound does not lurch.
-    fn cfx_knob(&mut self, ch: usize, v: f64) -> Vec<Action> {
-        let b = (v - 0.5) * 2.0;
-        let previous = self.cfx[ch].replace(v).map(|p| (p - 0.5) * 2.0);
-        if !self.cfx_armed[ch] {
-            let crossed = previous.is_some_and(|p| p * b <= 0.0);
-            if b.abs() <= CFX_CENTRE || crossed {
-                self.cfx_armed[ch] = true;
-            } else {
-                return vec![];
-            }
-        }
-        vec![Action::Engine(Command::Mixer { channel: ch, param: MixerParam::Filter(b as f32) })]
-    }
-
-    fn fx_switch_changed(&mut self, side: usize, on: bool) -> Vec<Action> {
-        self.fx_switch[side] = on;
-        self.fx_switch_seen = true;
-        let target = match self.fx_switch {
-            [true, true] => FxTarget::Master,
-            [true, false] => FxTarget::A,
-            [false, true] => FxTarget::B,
-            [false, false] => return vec![],
-        };
-        vec![Action::Engine(Command::BeatFxTarget(target))]
     }
 
     fn set_led(&mut self, out: &mut Vec<MidiOut>, status: u8, data1: u8, value: u8) {
@@ -901,28 +838,24 @@ impl Flx4 {
     }
 }
 
-impl ControllerMapping for Flx4 {
+impl ControllerMapping for Ddj400 {
     fn name(&self) -> &'static str {
-        "Pioneer DJ DDJ-FLX4"
+        "Pioneer DJ DDJ-400"
     }
 
     fn matches_port(&self, port_name: &str) -> bool {
-        port_name.to_ascii_uppercase().contains("FLX4")
+        port_name.trim().eq_ignore_ascii_case("DDJ-400")
     }
 
     fn on_connect(&mut self) -> Vec<MidiOut> {
         self.leds.clear();
         self.hires.clear();
-        self.fx_switch = [false; 2];
-        self.fx_switch_seen = false;
         self.fx_notes_down = [false; 128];
         self.pending.clear();
         self.knob = None;
         self.knob_key = KnobKey::Level;
         self.knob_engaged = true;
         self.gate = None;
-        self.cfx = [None; DECK_COUNT];
-        self.cfx_armed = [true; DECK_COUNT];
         for d in &mut self.decks {
             d.tempo_engaged = false;
             d.last_loaded_token = 0;
@@ -931,13 +864,8 @@ impl ControllerMapping for Flx4 {
             d.held = [None; 8];
             d.shift = false;
         }
-        self.last_keepalive = None;
         let vinyl = if self.vinyl_mode { ON } else { 0 };
-        let mut out = vec![vec![NOTE_ON, note::VINYL, vinyl], vec![NOTE_ON | 1, note::VINYL, vinyl]];
-        if self.keepalive {
-            out.push(KEEPALIVE_SYSEX.to_vec());
-        }
-        out
+        vec![vec![NOTE_ON, note::VINYL, vinyl], vec![NOTE_ON | 1, note::VINYL, vinyl]]
     }
 
     fn on_disconnect(&mut self) -> Vec<MidiOut> {
@@ -971,21 +899,10 @@ impl ControllerMapping for Flx4 {
         out
     }
 
-    fn tick(&mut self, now: Instant) -> Vec<MidiOut> {
-        if !self.keepalive {
-            return vec![];
-        }
-        match self.last_keepalive {
-            Some(t) if now.duration_since(t) < KEEPALIVE_INTERVAL => vec![],
-            _ => {
-                self.last_keepalive = Some(now);
-                vec![KEEPALIVE_SYSEX.to_vec()]
-            }
-        }
-    }
+    fn tick(&mut self, _now: Instant) -> Vec<MidiOut> { vec![] }
 }
 
-impl Flx4 {
+impl Ddj400 {
     fn input(&mut self, message: &[u8], snapshot: &EngineSnapshot) -> Vec<Action> {
         let [status, data1, data2] = match message {
             [a, b, c] => [*a, *b, *c],
@@ -1003,8 +920,8 @@ impl Flx4 {
                 self.pad(deck, shift, data1, pressed, snapshot)
             }
             (true, GLOBAL_CH) => self.global_note(data1, pressed, snapshot),
-            (true, FX_CH_1 | FX_CH_2) => self.fx_note(channel, data1, pressed, snapshot),
-            (false, FX_CH_1) if kind == CC && matches!(data1, cc::FX_LEVEL | cc::FX_LEVEL_LSB) => {
+            (true, FX_CH) => self.fx_note(data1, pressed, snapshot),
+            (false, FX_CH) if kind == CC && matches!(data1, cc::FX_LEVEL | cc::FX_LEVEL_LSB) => {
                 let Some((_, v)) = self.hires(status, data1, data2) else { return vec![] };
                 self.fx_level(v, snapshot)
             }
@@ -1014,19 +931,15 @@ impl Flx4 {
         }
     }
 
-    /// FX ON/OFF: per the official list's footnote, NOTE ON blinks and NOTE OFF lights steadily (needs a hardware look).
+    /// FX ON/OFF LEDs use the controller's documented status inversion: NOTE ON flashes and NOTE OFF is steady.
     fn led_feedback(&mut self, out: &mut Vec<MidiOut>, snap: &EngineSnapshot, now: Instant) {
-        let fx_on = if snap.beat_fx.enabled { ON } else { 0 };
-        for status in [NOTE_ON | FX_CH_1, NOTE_ON | FX_CH_2] {
-            self.set_led(out, status, note::FX_ON, fx_on);
-            self.set_led(out, status, note::FX_ON_SHIFT, fx_on);
-        }
+        let fx_status = if snap.beat_fx.enabled { NOTE_ON | FX_CH } else { NOTE_OFF | FX_CH };
+        let fx_value = ON;
+        self.set_led(out, fx_status, note::FX_ON, fx_value);
+        self.set_led(out, fx_status, note::FX_ON_SHIFT, fx_value);
         let ms = instant_ms(now);
         let blink = (ms / 500).is_multiple_of(2);
         let fast = (ms / PAD_BLINK_MS).is_multiple_of(2);
-        let arming = self.cfx_armed.iter().any(|a| !a);
-        let smart = snap.smart_cfx.enabled && (!arming || (ms / SLOW_BLINK_MS).is_multiple_of(2));
-        self.set_led(out, NOTE_ON | GLOBAL_CH, note::SMART_CFX, if smart { ON } else { 0 });
         for (deck, pad_status) in PAD_STATUS.iter().enumerate() {
             let d = snap.decks[deck];
             let play_on = d.playing && !d.previewing || (d.loaded && !d.playing && blink);
@@ -1037,7 +950,7 @@ impl Flx4 {
             self.deck_led(out, deck, note::SYNC, d.sync_enabled);
             self.deck_led(out, deck, note::LOOP_IN, d.loop_active);
             self.deck_led(out, deck, note::LOOP_OUT, d.loop_active);
-            self.deck_led(out, deck, note::BEAT4, d.loop_active);
+            self.deck_led(out, deck, note::RELOOP_EXIT, d.loop_active);
             self.deck_led(out, deck, note::PFL, snap.channels[deck].pfl);
 
             let mode = self.decks[deck].pad_mode;
@@ -1063,9 +976,6 @@ impl Flx4 {
                 self.set_led(out, pad_status[0], base + pad, if plain { ON } else { 0 });
                 self.set_led(out, pad_status[1], base + pad, if shifted { ON } else { 0 });
             }
-            let vu = vu_value(snap.channels[deck].meter_l.max(snap.channels[deck].meter_r));
-            self.set_led(out, CC | deck as u8, cc::VU, vu);
-
             if d.loaded && d.track_token != self.decks[deck].last_loaded_token {
                 self.decks[deck].last_loaded_token = d.track_token;
                 out.push(vec![0x9F, deck as u8, ON]);

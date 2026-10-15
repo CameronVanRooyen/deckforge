@@ -15,7 +15,7 @@ pub use secondary::{
 };
 pub use output::{list_output_devices, ActiveOutput, AudioManager, OutputDeviceInfo, OutputRequest, OutputState, OutputStatus};
 pub use snapshot::{
-    BeatFxSnapshot, ChannelSnapshot, DeckSnapshot, EngineSnapshot, MasterSnapshot, PadFxSnapshot, ReleaseFxSnapshot, SmartCfxSnapshot,
+    BeatFxSnapshot, ChannelSnapshot, DeckSnapshot, EngineSnapshot, MasterSnapshot, PadFxSnapshot, ReleaseFxSnapshot,
 };
 
 /// Jog resolution used to convert controller ticks into platter revolutions.

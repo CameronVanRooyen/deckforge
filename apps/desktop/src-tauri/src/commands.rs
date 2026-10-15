@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use deckforge_common::{
-    Band, BeatFxKind, Beatgrid, ColorFxKind, CrossfaderCurve, EqCurve, FxBands, FxTarget, FxTrigger, PadFxAction, ReleaseFxKind, SmartCfxPreset, TempoRange,
+    Band, BeatFxKind, Beatgrid, ColorFxKind, CrossfaderCurve, EqCurve, FxBands, FxTarget, FxTrigger, PadFxAction, ReleaseFxKind, TempoRange,
     PAD_FX1_BANK, PAD_FX1_SHIFT_BANK,
 };
 use deckforge_controller::{ControllerStatus, MidiLogEntry};
@@ -75,8 +75,6 @@ pub enum UiCommand {
     PadFx { deck: usize, slot: usize, shift: bool, pressed: bool },
     ReleaseFx,
     ReleaseFxConfig { kind: ReleaseFxKind, beats: f64 },
-    SmartCfx { enabled: bool },
-    SmartCfxPreset { preset: SmartCfxPreset },
 }
 
 /// A PAD FX 1 pad clicked on screen, resolved against the same bank as the hardware pads.
@@ -144,8 +142,6 @@ impl From<UiCommand> for Command {
             U::PadFx { deck, slot, shift, pressed } => pad_fx_command(deck, slot, shift, pressed),
             U::ReleaseFx => Command::ReleaseFx,
             U::ReleaseFxConfig { kind, beats } => Command::ReleaseFxConfig { kind, beats },
-            U::SmartCfx { enabled } => Command::SmartCfx(enabled),
-            U::SmartCfxPreset { preset } => Command::SmartCfxPreset(preset),
         }
     }
 }
@@ -196,7 +192,7 @@ mod ui_command_tests {
     }
 
     #[test]
-    fn pad_fx_release_and_smart_cfx_commands_resolve_against_the_banks() {
+    fn pad_fx_release_commands_resolve_against_the_banks() {
         assert!(matches!(
             parse(r#"{"type":"padFx","deck":1,"slot":0,"shift":false,"pressed":true}"#),
             Command::PadFx { deck: 1, voice: Some(v) } if v.kind == BeatFxKind::Echo
@@ -215,8 +211,6 @@ mod ui_command_tests {
             parse(r#"{"type":"releaseFxConfig","kind":"backspin","beats":4}"#),
             Command::ReleaseFxConfig { kind: ReleaseFxKind::Backspin, beats } if beats == 4.0
         ));
-        assert!(matches!(parse(r#"{"type":"smartCfx","enabled":true}"#), Command::SmartCfx(true)));
-        assert!(matches!(parse(r#"{"type":"smartCfxPreset","preset":"riser"}"#), Command::SmartCfxPreset(SmartCfxPreset::Riser)));
     }
 
     #[test]
@@ -515,7 +509,6 @@ mod tests {
             "ColorFxKind" => "dubEcho".into(),
             "FxTriggerAction" => "freezeOn".into(),
             "ReleaseFxKind" => "vinylBrake".into(),
-            "SmartCfxPreset" => "crushChop".into(),
             other => panic!("unmapped TS type {other}"),
         }
     }

@@ -162,10 +162,10 @@ fn channel_levels(c: &Capture, ch: usize, freqs: [f64; 2]) -> [f64; 2] {
     [goertzel(&x, freqs[0], c.rate), goertzel(&x, freqs[1], c.rate)]
 }
 
-/// Drives the engine only through real DDJ-FLX4 MIDI bytes (as the hardware would send them)
+/// Drives the engine only through official DDJ-400 MIDI bytes (as the hardware sends them)
 /// and verifies the resulting audio on a loopback device.
-fn flx4_sim(device_match: &str) -> Result<()> {
-    use deckforge_controller::{ControllerService, Flx4};
+fn ddj400_sim(device_match: &str) -> Result<()> {
+    use deckforge_controller::{ControllerService, Ddj400};
     const A_HZ: f64 = 330.0;
     const B_HZ: f64 = 1_250.0;
     let out_dev = list_output_devices()
@@ -181,7 +181,7 @@ fn flx4_sim(device_match: &str) -> Result<()> {
     let sr = active.sample_rate;
     let app_actions: Arc<Mutex<Vec<String>>> = Arc::default();
     let sink = app_actions.clone();
-    let ctl = ControllerService::spawn(Box::new(Flx4::new()), engine.clone(), Box::new(move |a| sink.lock().push(format!("{a:?}"))));
+    let ctl = ControllerService::spawn(Box::new(Ddj400::new()), engine.clone(), Box::new(move |a| sink.lock().push(format!("{a:?}"))));
     load(&engine, 0, tone(A_HZ, 30.0, sr));
     load(&engine, 1, tone(B_HZ, 30.0, sr));
     let send = |bytes: &[u8]| {
@@ -230,7 +230,7 @@ fn flx4_sim(device_match: &str) -> Result<()> {
     println!("  MIDI log entries: {} (last: {})", log.len(), log.last().map(|e| e.summary.as_str()).unwrap_or("-"));
     manager.close();
     if stage1 && stage2 && actions.len() == 2 {
-        println!("PASS: FLX4 MIDI drove play/pause, faders, crossfader, headphone cue and browse/load end-to-end");
+        println!("PASS: DDJ-400 MIDI drove play/pause, faders, crossfader, headphone cue and browse/load end-to-end");
         Ok(())
     } else {
         bail!("simulation check failed")
@@ -597,7 +597,7 @@ fn main() -> Result<()> {
         Some("seed") if args.len() >= 3 => seed(&args[1], &args[2], args.get(3).map(String::as_str))?,
         Some("bench") if args.len() >= 3 => bench(&args[1..3])?,
         Some("fx-demos") if args.len() >= 3 => fx_demos::run(&args[1], &args[2], args.get(3).and_then(|v| v.parse().ok()).unwrap_or(60.0), args.get(4).map(String::as_str))?,
-        Some("flx4-sim") => flx4_sim(args.get(1).map(String::as_str).unwrap_or("BlackHole 16ch"))?,
+        Some("ddj400-sim") => ddj400_sim(args.get(1).map(String::as_str).unwrap_or("BlackHole 16ch"))?,
         Some("secondary") => {
             let arg = |i: usize| args.get(i).map(String::as_str);
             secondary_check(
@@ -610,11 +610,11 @@ fn main() -> Result<()> {
         }
         Some("secondary-swap") => secondary_swap(
             args.get(1).map(String::as_str).unwrap_or("BlackHole 16ch"),
-            args.get(2).map(String::as_str).unwrap_or("DDJ-FLX4"),
+            args.get(2).map(String::as_str).unwrap_or("DDJ-400"),
             args.get(3).map(String::as_str).unwrap_or("BlackHole 2ch"),
         )?,
         Some("loopback") => loopback(args.get(1).map(String::as_str).unwrap_or("BlackHole 16ch"))?,
-        _ => println!("usage: deckforge-cli devices | loopback [device] | flx4-sim [device] | secondary [primary] [secondary] [secs] [level] [master] | secondary-swap [first] [second] [secondary] | bench <a> <b> | fx-demos <track> <out-dir> [start-secs] [file-label]"),
+        _ => println!("usage: deckforge-cli devices | loopback [device] | ddj400-sim [device] | secondary [primary] [secondary] [secs] [level] [master] | secondary-swap [first] [second] [secondary] | bench <a> <b> | fx-demos <track> <out-dir> [start-secs] [file-label]"),
     }
     Ok(())
 }

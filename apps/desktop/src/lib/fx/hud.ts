@@ -19,8 +19,6 @@ import {
   BEAT_FX_ORDER,
   PAD_MODE_LABELS,
   RELEASE_FX_LABELS,
-  SMART_CFX_LABELS,
-  SMART_CFX_SIDES,
   beatLabel,
   deckLetter,
   knobParams,
@@ -32,8 +30,8 @@ import {
 } from './labels';
 import { around } from '$lib/util/around';
 
-export type HudAnchor = 'bar' | 'mixer' | 0 | 1;
-export type HudTone = 'fx' | 'shot' | 'smart' | 'deck';
+export type HudAnchor = 'bar' | 0 | 1;
+export type HudTone = 'fx' | 'shot' | 'deck';
 
 export interface HudPage {
   label: string;
@@ -62,7 +60,6 @@ export interface HudIdle {
   level: number;
   pads: [string, string];
   cfx: string;
-  smart: boolean;
 }
 
 export interface HudView {
@@ -96,15 +93,13 @@ export function hudIdle(snap: EngineSnapshot, fx: FxControlState): HudIdle {
     time: t.name === 'Beat' ? `${t.value} beat${b.beats <= 1 ? '' : 's'}` : t.value,
     level: b.level,
     pads: [PAD_MODE_LABELS[fx.padModes[0]], PAD_MODE_LABELS[fx.padModes[1]]],
-    cfx: snap.smartCfx.enabled ? SMART_CFX_LABELS[snap.smartCfx.preset] : COLOR_FX_LABELS[snap.colorFx],
-    smart: snap.smartCfx.enabled,
+    cfx: COLOR_FX_LABELS[snap.colorFx],
   };
 }
 
 export function hudAnchor(fx: FxControlState): HudAnchor | null {
   const hud = fx.hud;
   if (!hud) return null;
-  if (hud.control === 'smartCfx' || hud.control === 'smartPreset') return 'mixer';
   const deck = hud.deck ?? (fx.knobTarget === 'padLevel' && (hud.control === 'level' || hud.control === 'beats') ? (fx.pickup?.deck ?? fx.held.findIndex((h) => h !== null)) : null);
   return deck === 0 || deck === 1 ? deck : 'bar';
 }
@@ -217,27 +212,8 @@ function barView(snap: EngineSnapshot, fx: FxControlState, sticky: boolean): Hud
   return { ...base, name: 'Level', value: pct(b.level), norm: b.level, pickup, pages: pageList };
 }
 
-function mixerView(snap: EngineSnapshot, fx: FxControlState): HudView {
-  const s = snap.smartCfx;
-  const [l, r] = SMART_CFX_SIDES[s.preset];
-  const arming = fx.smartArming.some(Boolean);
-  return {
-    tone: 'smart',
-    kicker: 'Smart CFX',
-    name: fx.hud?.control === 'smartPreset' ? 'Preset' : s.enabled ? 'On' : 'Off · Color FX',
-    value: SMART_CFX_LABELS[s.preset],
-    norm: null,
-    progress: null,
-    sub: arming ? 'Return the CFX knob to centre to arm it' : `${l}  ◂ ▸  ${r}`,
-    pickup: null,
-    pages: null,
-    list: null,
-  };
-}
-
 export function hudView(snap: EngineSnapshot, fx: FxControlState, anchor: HudAnchor, sticky: boolean): HudView | null {
   if (!fx.hud) return null;
-  if (anchor === 'mixer') return mixerView(snap, fx);
   if (anchor === 'bar') return barView(snap, fx, sticky);
   return deckView(snap, fx, anchor);
 }

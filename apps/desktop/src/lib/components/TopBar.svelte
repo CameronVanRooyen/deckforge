@@ -87,7 +87,7 @@
     <button class="chip" onclick={() => ui.openSettings('controller')} title="Controller and MIDI diagnostics">
       <Usb size={13} strokeWidth={2.2} />
       <i class="led" data-state={ctl?.connected ? 'ok' : 'bad'}></i>
-      <span class="long">{ctl?.connected ? 'FLX4' : 'No FLX4'}</span>
+      <span class="long">{ctl?.connected ? 'DDJ-400' : 'No DDJ-400'}</span>
     </button>
 
     <div class="cpu" title="Audio callback load (peak)">

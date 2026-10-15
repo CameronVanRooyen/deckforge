@@ -1,5 +1,5 @@
 use deckforge_common::{
-    beat_fx_params, BeatFxKind, ColorFxKind, CrossfaderCurve, EqCurve, FxBands, FxTarget, HotCue, PadVoice, ReleaseFxKind, SmartCfxPreset, TempoRange,
+    beat_fx_params, BeatFxKind, ColorFxKind, CrossfaderCurve, EqCurve, FxBands, FxTarget, HotCue, PadVoice, ReleaseFxKind, TempoRange,
     BEAT_FX_MAX_PARAMS, BEAT_FX_PERCENT_DEFAULT, COLOR_FX_MAX_PARAMS, DECK_COUNT, HOT_CUE_SLOTS, RELEASE_FX_DEFAULT_BEATS,
 };
 use serde::Serialize;
@@ -136,13 +136,6 @@ impl Default for ReleaseFxSnapshot {
 
 #[derive(Debug, Clone, Copy, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SmartCfxSnapshot {
-    pub enabled: bool,
-    pub preset: SmartCfxPreset,
-}
-
-#[derive(Debug, Clone, Copy, Default, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct EngineSnapshot {
     pub decks: [DeckSnapshot; DECK_COUNT],
     pub channels: [ChannelSnapshot; DECK_COUNT],
@@ -158,5 +151,4 @@ pub struct EngineSnapshot {
     pub color_fx_params: [f32; COLOR_FX_MAX_PARAMS],
     pub pad_fx: [PadFxSnapshot; DECK_COUNT],
     pub release_fx: ReleaseFxSnapshot,
-    pub smart_cfx: SmartCfxSnapshot,
 }

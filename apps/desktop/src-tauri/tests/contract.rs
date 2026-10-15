@@ -453,11 +453,9 @@ fn fx_control_snapshots_match_types_ts() {
     check("PadFxSnapshot", &v["padFx"][0]);
     check("PadVoice", &v["padFx"][0]["voice"]);
     check("ReleaseFxSnapshot", &v["releaseFx"]);
-    check("SmartCfxSnapshot", &v["smartCfx"]);
     assert_eq!(v["padFx"][1]["release"], "backspin");
     assert_eq!(v["releaseFx"]["kind"], "echoOut");
     assert_eq!(v["releaseFx"]["beats"], 2.0);
-    assert_eq!(v["smartCfx"]["preset"], "echoWash");
 }
 
 #[test]
@@ -495,7 +493,7 @@ fn pad_fx_banks_match_types_ts() {
 #[test]
 fn fx_control_state_matches_types_ts() {
     use deckforge_controller::{AppAction, FxControlState, FxHud, FxHudControl, FxKnobTarget, FxPickup, HeldPad};
-    use deckforge_controller::flx4::PadMode;
+    use deckforge_controller::ddj400::PadMode;
 
     let state = FxControlState {
         shift: true,
@@ -504,8 +502,7 @@ fn fx_control_state_matches_types_ts() {
         pickup: Some(FxPickup { target: FxKnobTarget::Param, deck: None, index: Some(0), value: 0.4, knob: 0.9 }),
         pad_modes: [PadMode::PadFx1, PadMode::PadFx2],
         held: [Some(HeldPad { pad: 2, shift: false, mode: PadMode::PadFx1 }), None],
-        smart_arming: [false, true],
-        hud: Some(FxHud { seq: 3, control: FxHudControl::SmartPreset, deck: None }),
+        hud: Some(FxHud { seq: 3, control: FxHudControl::Kind, deck: None }),
     };
     let v = serde_json::to_value(AppAction::FxControl(state)).unwrap();
     assert_eq!(v["type"], "fxControl");
@@ -517,5 +514,5 @@ fn fx_control_state_matches_types_ts() {
     check("HeldPad", &v["held"][0]);
     assert_eq!(v["padModes"][1], "padFx2");
     assert_eq!(v["knobTarget"], "param");
-    assert_eq!(v["hud"]["control"], "smartPreset");
+    assert_eq!(v["hud"]["control"], "kind");
 }

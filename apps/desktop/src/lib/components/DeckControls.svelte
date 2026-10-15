@@ -187,7 +187,7 @@
       {#if fxPads || engine.preview}
         <div class="ptab" class:lit={fxPads} class:shift={fxControl.shiftLayer(deck)}>
           {#if engine.preview}
-            <button class="plabel" onclick={previewMode} title="Preview only: cycle the pad mode the FLX4 would set">{fxPads ? (padMode === 'padFx1' ? 'FX 1' : 'FX 2') : 'CUE'}</button>
+            <button class="plabel" onclick={previewMode} title="Preview only: cycle the pad mode the DDJ-400 would set">{fxPads ? (padMode === 'padFx1' ? 'FX 1' : 'FX 2') : 'CUE'}</button>
           {:else}
             <span class="plabel" title={padMode === 'padFx1' ? 'PAD FX 1' : 'PAD FX 2'}>{padMode === 'padFx1' ? 'FX 1' : 'FX 2'}</span>
           {/if}

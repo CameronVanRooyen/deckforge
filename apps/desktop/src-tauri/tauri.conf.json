@@ -39,8 +39,8 @@
       "icons/icon.ico"
     ],
     "category": "Music",
-    "shortDescription": "Native two-deck DJ app for the DDJ-FLX4",
-    "longDescription": "deckforge is a two-deck DJ performance app with a real-time Rust audio engine, GPU waveforms and full Pioneer DJ DDJ-FLX4 support.",
+    "shortDescription": "Native two-deck DJ app for the DDJ-400",
+    "longDescription": "deckforge is a two-deck DJ performance app with a real-time Rust audio engine, GPU waveforms and Pioneer DJ DDJ-400 support.",
     "copyright": "Copyright (c) 2026 Gerhard Kloppers",
     "licenseFile": "../../../LICENSE-MIT",
     "macOS": {

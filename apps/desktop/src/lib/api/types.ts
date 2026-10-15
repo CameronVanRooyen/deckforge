@@ -82,15 +82,12 @@ export interface EngineSnapshot {
   colorFxParams: number[]; // sub-parameters of the selected `colorFx`; only the first `COLOR_FX_PARAMS[colorFx].length` entries are meaningful
   padFx: [PadFxSnapshot, PadFxSnapshot]; // per-deck Pad FX unit
   releaseFx: ReleaseFxSnapshot;
-  smartCfx: SmartCfxSnapshot;
 }
 
 export type ReleaseFxKind = 'echoOut' | 'backspin' | 'vinylBrake' | 'rollOut';
 /** Types offered for SHIFT + FX ON/OFF (rekordbox's Release FX); `rollOut` is pad-only. */
 export const RELEASE_FX_KINDS = ['echoOut', 'backspin', 'vinylBrake'] as const;
 export const RELEASE_FX_BEATS = [0.5, 1, 2, 4, 8] as const;
-export type SmartCfxPreset = 'echoWash' | 'riser' | 'space' | 'crushChop';
-export const SMART_CFX_PRESETS = ['echoWash', 'riser', 'space', 'crushChop'] as const;
 
 /** A held Pad FX effect: a Beat FX kind with its own settings, running on the pad's deck. */
 export interface PadVoice {
@@ -113,11 +110,6 @@ export interface ReleaseFxSnapshot {
   beats: number; // one of RELEASE_FX_BEATS
   running: ReleaseFxKind | null; // on the Beat FX target
   progress: number; // 0..1 while running
-}
-
-export interface SmartCfxSnapshot {
-  enabled: boolean; // CFX knobs drive the preset macro instead of Color FX
-  preset: SmartCfxPreset;
 }
 
 export type PadFxAction =
@@ -363,9 +355,7 @@ export type UiCommand =
   | { type: 'colorFxParam'; index: number; value: number }
   | { type: 'padFx'; deck: DeckIndex; slot: number; shift: boolean; pressed: boolean } // PAD FX 1 pad, as on the hardware
   | { type: 'releaseFx' } // SHIFT + FX ON/OFF
-  | { type: 'releaseFxConfig'; kind: ReleaseFxKind; beats: number }
-  | { type: 'smartCfx'; enabled: boolean }
-  | { type: 'smartCfxPreset'; preset: SmartCfxPreset };
+  | { type: 'releaseFxConfig'; kind: ReleaseFxKind; beats: number };
 
 export type AnalysisState = 'pending' | 'running' | 'done' | 'failed';
 
@@ -514,12 +504,13 @@ export type ControllerAppAction =
   | { type: 'browseScroll'; delta: number }
   | { type: 'browseToggleFocus' }
   | { type: 'loadSelected'; deck: DeckIndex }
+  | { type: 'ejectDeck'; deck: DeckIndex }
   | { type: 'hardwareKnob'; name: 'masterLevel' | 'headphoneMix' | 'headphoneLevel'; value: number }
   | ({ type: 'fxControl' } & FxControlState);
 
 export type PadMode = 'hotCue' | 'padFx1' | 'beatJump' | 'sampler' | 'keyboard' | 'padFx2' | 'beatLoop' | 'keyShift';
 export type FxKnobTarget = 'level' | 'param' | 'padLevel';
-export type FxHudControl = 'level' | 'param' | 'page' | 'beats' | 'kind' | 'onOff' | 'release' | 'padFx' | 'padMode' | 'smartCfx' | 'smartPreset';
+export type FxHudControl = 'level' | 'param' | 'page' | 'beats' | 'kind' | 'onOff' | 'release' | 'padFx' | 'padMode';
 
 /** LEVEL/DEPTH is waiting to catch up with the stored value of its new target (soft pickup). */
 export interface FxPickup {
@@ -550,7 +541,6 @@ export interface FxControlState {
   pickup: FxPickup | null;
   padModes: [PadMode, PadMode];
   held: [HeldPad | null, HeldPad | null];
-  smartArming: [boolean, boolean]; // CFX knob ignored until it passes the centre
   hud: FxHud | null;
 }
 

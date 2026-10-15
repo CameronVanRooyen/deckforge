@@ -32,7 +32,6 @@ export const EMPTY_SNAPSHOT: EngineSnapshot = {
     { voice: null, sounding: false, release: null, releaseProgress: 0 },
   ],
   releaseFx: { kind: 'echoOut', beats: 2, running: null, progress: 0 },
-  smartCfx: { enabled: false, preset: 'echoWash' },
 };
 
 class EngineStore {

@@ -3,7 +3,7 @@
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import {
   BEAT_FX_KIND_BEATS, BEAT_FX_MAX_PARAMS, BEAT_FX_BEATS, BEAT_FX_PARAMS, BEAT_FX_PERCENT_KINDS, COLOR_FX_PARAMS, EVENTS, PAD_FX1_BANK, PAD_FX1_SHIFT_BANK,
-  PAD_FX2_BEATS, PAD_FX2_FAVOURITES, PAD_FX2_PERCENTS, SMART_CFX_PRESETS, type api as RealApi,
+  PAD_FX2_BEATS, PAD_FX2_FAVOURITES, PAD_FX2_PERCENTS, type api as RealApi,
 } from './index';
 import type {
   ActiveOutput, AnalysisProgress, AnalysisState, BeatFxKind, BeatFxSnapshot, ChannelSnapshot, ControllerAppAction, ControllerStatus,
@@ -204,7 +204,6 @@ const state: EngineSnapshot = {
     { voice: null, sounding: false, release: null, releaseProgress: 0 },
   ],
   releaseFx: { kind: 'echoOut', beats: 2, running: null, progress: 0 },
-  smartCfx: { enabled: false, preset: 'echoWash' },
 };
 
 const LOW_DRY_KINDS: BeatFxKind[] = ['delay', 'echo', 'upEcho', 'downEcho', 'pingPong', 'spiral', 'reverb', 'pulseVerb', 'dubTape', 'halo', 'backwash'];
@@ -342,13 +341,7 @@ function engineCommand(c: UiCommand) {
     case 'setMasterDeck': state.masterDeck = c.deck; break;
     case 'trim': state.channels[c.channel].trim = c.value; break;
     case 'eq': state.channels[c.channel][c.band === 'High' ? 'eqHigh' : c.band === 'Mid' ? 'eqMid' : 'eqLow'] = c.value; break;
-    case 'filter':
-      if (fxc.smartArming[c.channel] && (Math.abs(c.value) <= 0.02 || Math.sign(c.value) !== Math.sign(state.channels[c.channel].filter))) {
-        fxc.smartArming = fxc.smartArming.map((a, i) => (i === c.channel ? false : a)) as [boolean, boolean];
-        emitFxc();
-      }
-      state.channels[c.channel].filter = c.value;
-      break;
+    case 'filter': state.channels[c.channel].filter = c.value; break;
     case 'fader': state.channels[c.channel].fader = c.value; break;
     case 'pfl': state.channels[c.channel].pfl = c.enabled; break;
     case 'crossfader': state.master.crossfader = c.value; break;
@@ -402,14 +395,6 @@ function engineCommand(c: UiCommand) {
       state.beatFx.enabled = false;
       break;
     case 'releaseFxConfig': Object.assign(state.releaseFx, { kind: c.kind, beats: c.beats }); break;
-    case 'smartCfx':
-      state.smartCfx.enabled = c.enabled;
-      armSmart();
-      break;
-    case 'smartCfxPreset':
-      state.smartCfx.preset = c.preset;
-      armSmart();
-      break;
     case 'colorFx':
       state.colorFx = c.kind;
       state.colorFxParams = [0, 0].map((_, i) => COLOR_FX_PARAMS[c.kind][i]?.default ?? 0);
@@ -525,14 +510,14 @@ function logMidi(bytes: number[], summary: string) {
 }
 
 const controller: ControllerStatus = {
-  connected: false, mapping: 'Pioneer DDJ-FLX4 (preview)', inputPort: null, outputPort: null,
+  connected: false, mapping: 'Pioneer DJ DDJ-400 (preview)', inputPort: null, outputPort: null,
   availableInputs: [], availableOutputs: [], messagesIn: 0, messagesOut: 0, lastError: null,
 };
 
-// ───────────────────────── FLX4 FX control (simulated controller) ─────────────────────────
+// ───────────────────────── DDJ-400 FX control (simulated controller) ─────────────────────────
 
 const fxc: FxControlState = {
-  shift: false, knobTarget: 'level', focus: 0, pickup: null, padModes: ['hotCue', 'hotCue'], held: [null, null], smartArming: [false, false], hud: null,
+  shift: false, knobTarget: 'level', focus: 0, pickup: null, padModes: ['hotCue', 'hotCue'], held: [null, null], hud: null,
 };
 let hudSeq = 0;
 let fxKnob: number | null = null;
@@ -574,10 +559,6 @@ function padFxCommand(deck: 0 | 1, slot: number, shift: boolean, pressed: boolea
     pad.voice = null;
     tailTimer[deck] = setTimeout(() => (pad.sounding = false), 700);
   }
-}
-
-function armSmart() {
-  fxc.smartArming = state.smartCfx.enabled ? (state.channels.map((c) => Math.abs(c.filter) > 0.02) as [boolean, boolean]) : [false, false];
 }
 
 function tickFx(dt: number) {
@@ -656,7 +637,7 @@ function page(dir: 1 | -1) {
   emitFxc('page');
 }
 
-const PAD_MODE_NOTES: Record<number, PadMode> = { 0x1b: 'hotCue', 0x1e: 'padFx1', 0x6b: 'padFx2', 0x20: 'beatJump', 0x6d: 'beatLoop', 0x22: 'sampler' };
+const PAD_MODE_NOTES: Record<number, PadMode> = { 0x1b: 'hotCue', 0x69: 'keyboard', 0x6d: 'padFx1', 0x20: 'beatJump', 0x22: 'sampler', 0x6b: 'padFx2', 0x1e: 'beatLoop', 0x6f: 'keyShift' };
 
 function handleFxMidi(s: number, d1: number, d2: number) {
   const on = d2 > 0;
@@ -706,6 +687,9 @@ function handleFxMidi(s: number, d1: number, d2: number) {
   }
   if (s === 0xb4 && d1 === 0x02) return applyKnob(d2 / 127);
   if (s === 0x94 && on) {
+    if (d1 === 0x10) return engineCommand({ type: 'beatFxTarget', target: 'a' });
+    if (d1 === 0x11) return engineCommand({ type: 'beatFxTarget', target: 'b' });
+    if (d1 === 0x14) return engineCommand({ type: 'beatFxTarget', target: 'master' });
     if (d1 === 0x4a || d1 === 0x4b) return stepBeats(d1 === 0x4a ? -1 : 1);
     if (d1 === 0x66 || d1 === 0x6b) return page(d1 === 0x66 ? -1 : 1);
     if (d1 === 0x63 || d1 === 0x64) {
@@ -717,27 +701,18 @@ function handleFxMidi(s: number, d1: number, d2: number) {
       return emitFxc('kind');
     }
   }
-  if ((s === 0x94 || s === 0x95) && on && d1 === 0x47) {
+  if (s === 0x94 && on && d1 === 0x47) {
     engineCommand({ type: 'beatFxEnabled', enabled: !state.beatFx.enabled });
     return emitFxc('onOff');
   }
-  if ((s === 0x94 || s === 0x95) && on && d1 === 0x43) {
+  if (s === 0x94 && on && d1 === 0x43) {
     engineCommand({ type: 'releaseFx' });
     return emitFxc('release');
-  }
-  if (s === 0x96 && on && d1 === 0x00) {
-    engineCommand({ type: 'smartCfx', enabled: !state.smartCfx.enabled });
-    return emitFxc('smartCfx');
-  }
-  if (s === 0x96 && on && d1 === 0x08) {
-    const i = SMART_CFX_PRESETS.indexOf(state.smartCfx.preset);
-    engineCommand({ type: 'smartCfxPreset', preset: SMART_CFX_PRESETS[(i + 1) % SMART_CFX_PRESETS.length] });
-    return emitFxc('smartPreset');
   }
   if (s === 0xb6 && (d1 === 0x17 || d1 === 0x18)) engineCommand({ type: 'filter', channel: d1 === 0x17 ? 0 : 1, value: (d2 / 127) * 2 - 1 });
 }
 
-/** Preview scenes for screenshots: `?fx3=pads|shift|level|smart`. */
+/** Preview scenes for screenshots: `?fx3=pads|shift|level|filter`. */
 function fxScene(name: string | null) {
   if (name) setTimeout(() => playFxScene(name), 700);
 }
@@ -747,12 +722,12 @@ function playFxScene(name: string) {
   Object.assign(state.beatFx, { enabled: true, kind: 'echo', beats: 0.5, level: 0.62, params: paramsFor('echo').map((p, i) => (i === 0 ? 62 : p)) });
   midi(0xb4, 0x02, Math.round(0.62 * 127));
   if (name === 'pads') {
-    midi(0x90, 0x1e, 0x7f);
+    midi(0x90, 0x6d, 0x7f);
     midi(0x91, 0x6b, 0x7f);
     midi(0x97, 0x11, 0x7f);
     setInterval(() => emitFxc('padFx', 0), 900);
   } else if (name === 'shift') {
-    midi(0x90, 0x1e, 0x7f);
+    midi(0x90, 0x6d, 0x7f);
     midi(0xb4, 0x02, 22);
     midi(0x90, 0x3f, 0x7f);
     midi(0x94, 0x6b, 0x7f);
@@ -763,10 +738,9 @@ function playFxScene(name: string) {
     midi(0xb4, 0x02, 30);
     midi(0x90, 0x3f, 0x00);
     setInterval(() => emitFxc('level'), 900);
-  } else if (name === 'smart') {
+  } else if (name === 'filter') {
     state.channels[1].filter = 0.45;
-    midi(0x96, 0x00, 0x7f);
-    midi(0x96, 0x08, 0x7f);
+    midi(0xb6, 0x18, 0x5c);
     const fire = () => {
       Object.assign(state.releaseFx, { kind: 'backspin', beats: 4 });
       engineCommand({ type: 'releaseFx' });
@@ -774,7 +748,6 @@ function playFxScene(name: string) {
     };
     fire();
     setInterval(fire, 2600);
-    setInterval(() => emitFxc('smartPreset'), 900);
   }
 }
 
@@ -791,6 +764,7 @@ function handleMidi(b: number[]) {
   if ((s === 0x97 || s === 0x99) && d1 < 8 && fxc.padModes[s === 0x97 ? 0 : 1] === 'hotCue') engineCommand({ type: 'hotCue', deck: s === 0x97 ? 0 : 1, slot: d1, pressed: d2 > 0 });
   handleFxMidi(s, d1, d2);
   if (s === 0x96 && d2 === 0x7f && (d1 === 0x46 || d1 === 0x47)) emit(EVENTS.controllerAction, { type: 'loadSelected', deck: d1 === 0x46 ? 0 : 1 } satisfies ControllerAppAction);
+  if (s === 0x96 && d2 === 0x7f && (d1 === 0x68 || d1 === 0x7a)) emit(EVENTS.controllerAction, { type: 'ejectDeck', deck: d1 === 0x68 ? 0 : 1 } satisfies ControllerAppAction);
   if (s === 0xb6 && d1 === 0x40) emit(EVENTS.controllerAction, { type: 'browseScroll', delta: d2 >= 0x40 ? d2 - 0x80 : d2 } satisfies ControllerAppAction);
   if (s === 0xb6 && d1 === 0x1f) engineCommand({ type: 'crossfader', value: (d2 << 7) / 16383 });
   if (type === 0xb0 && ch < 2 && d1 === 0x13) engineCommand({ type: 'fader', channel: ch as 0 | 1, value: (d2 << 7) / 16383 });
@@ -799,11 +773,11 @@ function handleMidi(b: number[]) {
 
 const devices: OutputDeviceInfo[] = [
   { id: 'preview-builtin', name: 'Preview — MacBook Speakers (2 ch)', maxChannels: 2, sampleRates: [44100, 48000], isDefault: true },
-  { id: 'preview-flx4', name: 'Preview — DDJ-FLX4 (4 ch)', maxChannels: 4, sampleRates: [44100, 48000, 96000], isDefault: false },
+  { id: 'preview-ddj400', name: 'Preview — DDJ-400 Audio Out (4 ch)', maxChannels: 4, sampleRates: [44100, 48000, 96000], isDefault: false },
   { id: 'preview-hdmi', name: 'Preview — Studio Monitors (8 ch)', maxChannels: 8, sampleRates: [44100, 48000], isDefault: false },
 ];
 let active: ActiveOutput = {
-  deviceId: 'preview-flx4', deviceName: devices[1].name, sampleRate: 48000, channels: 4, requestedBuffer: 256,
+  deviceId: 'preview-ddj400', deviceName: devices[1].name, sampleRate: 48000, channels: 4, requestedBuffer: 256,
   routing: { mode: 'master-and-phones', master: [0, 1], phones: [2, 3] }, sampleFormat: 'f32',
 };
 let streamCallbacks = 0;

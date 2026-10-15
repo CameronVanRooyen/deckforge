@@ -7,7 +7,7 @@ mod pad_fx;
 
 pub use fx_params::{beat_fx_knob_params, beat_fx_params, color_fx_params, BeatFxParamSpec, BEAT_FX_MAX_PARAMS, COLOR_FX_MAX_PARAMS};
 pub use pad_fx::{
-    snap_release_fx_beats, PadFxAction, PadFxSlot, PadVoice, ReleaseFxKind, SmartCfxPreset, PAD_FX1_BANK, PAD_FX1_SHIFT_BANK, PAD_FX2_BEATS,
+    snap_release_fx_beats, PadFxAction, PadFxSlot, PadVoice, ReleaseFxKind, PAD_FX1_BANK, PAD_FX1_SHIFT_BANK, PAD_FX2_BEATS,
     PAD_FX2_FAVOURITES, PAD_FX2_PERCENTS, RELEASE_FX_BEATS, RELEASE_FX_DEFAULT_BEATS,
 };
 

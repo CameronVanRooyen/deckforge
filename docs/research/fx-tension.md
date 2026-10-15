@@ -372,7 +372,7 @@ Freeze: input closed, reverb feedback held near 100 % while pitch shifting is by
 3. **Ascend macro** wired from existing and new parts.
 4. **Halo** (reuses the pitch shifter) and **Backwash** (needs look-ahead plumbing and an offline reverse-render path).
 
-Open questions to settle before building: where in the mixer the send/return sits (per deck versus master), the preferred controller mapping for Release and Throw on the DDJ-FLX4 (which has a Beat FX section and Sound Color FX knobs), and whether Ascend should replace the Color FX knob mapping while engaged.
+Open questions to settle before building: where in the mixer the send/return sits (per deck versus master), how Throw should be exposed in the app UI, and whether Ascend should temporarily replace the DDJ-400 Color FX knob mapping while engaged. Release is already mapped to SHIFT + FX ON/OFF.
 
 ## 6. Sources
 

@@ -69,7 +69,7 @@
           <button role="radio" aria-checked={rel.beats === b} class:active={rel.beats === b} onclick={() => configure(rel.kind, b)}>{beatLabel(b)}</button>
         {/each}
       </div>
-      <p class="hint">{HINTS[rel.kind]}. Fires on the Beat FX target; SHIFT + FX ON/OFF does the same on the FLX4.</p>
+      <p class="hint">{HINTS[rel.kind]}. Fires on the Beat FX target; SHIFT + FX ON/OFF does the same on the DDJ-400.</p>
     </div>
   {/if}
 </div>

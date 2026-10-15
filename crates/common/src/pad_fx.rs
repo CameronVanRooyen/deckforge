@@ -103,26 +103,6 @@ pub const PAD_FX2_FAVOURITES: [BeatFxKind; 8] = [
     BeatFxKind::FilterSweep,
 ];
 
-/// One-knob Smart CFX macros driven by each channel's CFX knob.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum SmartCfxPreset {
-    #[default]
-    EchoWash,
-    Riser,
-    Space,
-    CrushChop,
-}
-
-impl SmartCfxPreset {
-    pub const ALL: [SmartCfxPreset; 4] = [SmartCfxPreset::EchoWash, SmartCfxPreset::Riser, SmartCfxPreset::Space, SmartCfxPreset::CrushChop];
-
-    pub fn next(self) -> Self {
-        let i = Self::ALL.iter().position(|p| *p == self).unwrap_or(0);
-        Self::ALL[(i + 1) % Self::ALL.len()]
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -143,10 +123,9 @@ mod tests {
     }
 
     #[test]
-    fn release_beats_snap_and_presets_cycle() {
+    fn release_beats_snap() {
         assert_eq!(snap_release_fx_beats(3.0), Some(4.0));
         assert_eq!(snap_release_fx_beats(0.1), Some(0.5));
         assert_eq!(snap_release_fx_beats(f64::NAN), None);
-        assert_eq!(SmartCfxPreset::CrushChop.next(), SmartCfxPreset::EchoWash);
     }
 }

@@ -210,6 +210,7 @@ class Library {
     if (a.type === 'browseScroll') this.browse(a.delta);
     else if (a.type === 'browseToggleFocus') this.toggleFocus();
     else if (a.type === 'loadSelected') this.loadSelected(a.deck);
+    else if (a.type === 'ejectDeck') this.eject(a.deck);
     else if (a.type === 'hardwareKnob') engine.hardware = { ...engine.hardware, [a.name]: a.value };
     else if (a.type === 'fxControl') {
       const { type: _type, ...state } = a;
