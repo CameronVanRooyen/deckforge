@@ -13,6 +13,14 @@ The controller is connected to the development Mac. The official AlphaTheta MIDI
 - The rebuilt app's audio status was `Running` on `DDJ-400 Audio Out` at 44100 Hz, four channels, master-and-phones routing (master 1/2, phones 3/4), with a 256-frame callback, zero underruns/overruns, and zero stream errors.
 - `Headphone mix handled by controller hardware` was enabled. Preference persistence and hotplug fallback behavior are covered by desktop audio tests.
 
+## Software verification
+
+- `cargo test --workspace --all-targets` passed, including DDJ-400 mapping and LED tests.
+- `cargo test -p deckforge-desktop --lib ddj400_audio_tests` passed (7 tests for selection, routing, headphone preference, and fallback/hotplug behavior).
+- `pnpm test` passed (29 tests).
+- `pnpm check` reported zero errors and four accessibility warnings in existing components.
+- `pnpm tauri build` succeeded and produced the macOS app and DMG. Notarization was skipped because Apple signing/notarization environment variables are not configured.
+
 ## Checklist
 
 ### Controller connection and MIDI mapping
