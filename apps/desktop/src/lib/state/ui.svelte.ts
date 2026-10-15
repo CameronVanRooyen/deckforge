@@ -1,4 +1,9 @@
 export const ZOOM_LEVELS = [24, 40, 64, 100, 160, 256] as const;
+export type DeckView = 'detailed' | 'beatmatch';
+const WAVEFORM_SHARE_MIN = 50;
+const WAVEFORM_SHARE_MAX = 100;
+const WAVEFORM_SHARE_STEP = 5;
+const DEFAULT_WAVEFORM_SHARE = 100;
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -16,15 +21,31 @@ function save(key: string, value: unknown) {
   }
 }
 
+function loadDeckView(): DeckView {
+  return load<unknown>('df.deckView', 'detailed') === 'beatmatch' ? 'beatmatch' : 'detailed';
+}
+
+function normalizeWaveformShare(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_WAVEFORM_SHARE;
+  const bounded = Math.min(WAVEFORM_SHARE_MAX, Math.max(WAVEFORM_SHARE_MIN, value));
+  return Math.round(bounded / WAVEFORM_SHARE_STEP) * WAVEFORM_SHARE_STEP;
+}
+
+function loadWaveformShare(): number {
+  return normalizeWaveformShare(load<unknown>('df.waveformShare', DEFAULT_WAVEFORM_SHARE));
+}
+
 class UiStore {
   zoomIndex = $state(load('df.zoom', 2));
   libraryHeight = $state(load('df.libraryHeight', 280));
   sidebarWidth = $state(load('df.sidebarWidth', 210));
   timeMode = $state<['elapsed' | 'remaining', 'elapsed' | 'remaining']>(load('df.timeMode', ['remaining', 'remaining']));
+  deckView = $state<DeckView>(loadDeckView());
+  waveformShare = $state(loadWaveformShare());
   jumpBeats = $state<[number, number]>(load('df.jumpBeats', [4, 4]));
   sort = $state<{ key: string; dir: 1 | -1 }>(load('df.sort', { key: 'addedAt', dir: -1 }));
   settingsOpen = $state(false);
-  settingsTab = $state<'audio' | 'controller'>('audio');
+  settingsTab = $state<'audio' | 'controller' | 'view'>('audio');
   helpOpen = $state(false);
   browserView = $state<'library' | 'spotify'>('library');
 
@@ -69,11 +90,20 @@ class UiStore {
     this.jumpBeats = next;
     save('df.jumpBeats', next);
   }
+  setDeckView(view: DeckView) {
+    this.deckView = view;
+    save('df.deckView', view);
+  }
+  setWaveformShare(share: number) {
+    const next = normalizeWaveformShare(share);
+    this.waveformShare = next;
+    save('df.waveformShare', next);
+  }
   setSort(key: string) {
     this.sort = this.sort.key === key ? { key, dir: this.sort.dir === 1 ? -1 : 1 } : { key, dir: 1 };
     save('df.sort', this.sort);
   }
-  openSettings(tab: 'audio' | 'controller' = 'audio') {
+  openSettings(tab: 'audio' | 'controller' | 'view' = 'audio') {
     this.settingsTab = tab;
     this.settingsOpen = true;
   }

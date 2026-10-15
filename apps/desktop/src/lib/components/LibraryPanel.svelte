@@ -21,7 +21,7 @@
     const el = e.currentTarget as HTMLElement;
     el.setPointerCapture(e.pointerId);
     const startY = e.clientY;
-    const startH = ui.libraryHeight;
+    const startH = el.parentElement?.getBoundingClientRect().height ?? ui.libraryHeight;
     const move = (ev: PointerEvent) => ui.setLibraryHeight(Math.max(120, Math.min(window.innerHeight - (window.innerHeight <= 820 ? 556 : 608), startH + (startY - ev.clientY))));
     const up = () => {
       el.removeEventListener('pointermove', move);
@@ -106,7 +106,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    flex: none;
+    flex: var(--library-grow, 0) 0 auto;
     height: max(120px, min(var(--lib-h), calc(100vh - var(--chrome))));
     border-top: 1px solid var(--line);
     background: var(--panel);
