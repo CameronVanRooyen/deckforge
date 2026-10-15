@@ -1,0 +1,17 @@
+[package]
+name = "deckforge-analysis"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+deckforge-common.workspace = true
+symphonia.workspace = true
+realfft.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+log.workspace = true
+
+[dev-dependencies]
+hound.workspace = true

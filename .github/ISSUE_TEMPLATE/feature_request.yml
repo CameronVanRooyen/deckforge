@@ -1,0 +1,19 @@
+name: Feature request
+description: Suggest an idea or improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe the workflow or problem, ideally how you'd use it in a set.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could deckforge help?
+  - type: input
+    id: hardware
+    attributes:
+      label: Controller (if relevant)

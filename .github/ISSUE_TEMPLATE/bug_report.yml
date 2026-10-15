@@ -1,0 +1,43 @@
+name: Bug report
+description: Something isn't working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Load a track on deck A
+        2. Press …
+  - type: input
+    id: version
+    attributes:
+      label: deckforge version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [macOS (Apple Silicon), macOS (Intel), Windows, Linux]
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Controller and audio device
+      placeholder: DDJ-FLX4 over USB / built-in speakers
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or MIDI diagnostics
+      description: Paste relevant output from Settings → MIDI diagnostics or the terminal.
+      render: text

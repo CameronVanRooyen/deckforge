@@ -1,0 +1,15 @@
+[package]
+name = "deckforge-controller"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+deckforge-common.workspace = true
+deckforge-engine.workspace = true
+midir.workspace = true
+crossbeam-channel.workspace = true
+parking_lot.workspace = true
+serde.workspace = true
+log.workspace = true

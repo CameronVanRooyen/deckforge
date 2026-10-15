@@ -1,0 +1,51 @@
+[package]
+name = "deckforge-desktop"
+version.workspace = true
+description = "deckforge DJ performance app"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "deckforge_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["macos-private-api"] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+
+deckforge-common.workspace = true
+deckforge-engine.workspace = true
+deckforge-analysis.workspace = true
+deckforge-controller.workspace = true
+deckforge-library.workspace = true
+deckforge-gfx = { path = "../../../crates/gfx" }
+raw-window-handle = "0.6"
+deckforge-spotify.workspace = true
+open.workspace = true
+parking_lot.workspace = true
+crossbeam-channel.workspace = true
+log.workspace = true
+env_logger.workspace = true
+anyhow.workspace = true
+dirs.workspace = true
+
+[dev-dependencies]
+deckforge-library.workspace = true
+hound.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSGeometry"] }
+objc2-app-kit = { version = "0.3", features = ["NSView", "NSResponder", "NSWindow", "NSGraphics"] }

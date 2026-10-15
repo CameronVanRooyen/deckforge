@@ -1,0 +1,1241 @@
+{
+  "cases": [
+    {
+      "bpm": 120,
+      "firstBeatSecs": 0.18,
+      "fromSecs": -1,
+      "lines": [
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": -0.8200000000000001
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": -0.32
+        },
+        {
+          "bar": 1,
+          "kind": "four",
+          "phrase": -1,
+          "secs": 0.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 0.6799999999999999
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 1.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 1.68
+        },
+        {
+          "bar": 2,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 2.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 2.68
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 3.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 3.68
+        },
+        {
+          "bar": 3,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 4.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 4.68
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 5.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 5.68
+        },
+        {
+          "bar": 4,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 6.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 6.68
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 7.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 7.68
+        },
+        {
+          "bar": 5,
+          "kind": "four",
+          "phrase": -1,
+          "secs": 8.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 8.68
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 9.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 9.68
+        },
+        {
+          "bar": 6,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 10.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 10.68
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 11.18
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 11.68
+        }
+      ],
+      "name": "no phrases",
+      "phrases": [],
+      "positions": [
+        {
+          "bar": 1,
+          "beat": 1,
+          "beatsSinceAnchor": 0.0,
+          "secs": 0.18,
+          "toFourBar": 16
+        },
+        {
+          "bar": 2,
+          "beat": 3,
+          "beatsSinceAnchor": 6.239999999999999,
+          "secs": 3.3,
+          "toFourBar": 10
+        },
+        {
+          "bar": 5,
+          "beat": 4,
+          "beatsSinceAnchor": 19.04,
+          "secs": 9.7,
+          "toFourBar": 13
+        }
+      ],
+      "toSecs": 12
+    },
+    {
+      "bpm": 128,
+      "firstBeatSecs": 0,
+      "fromSecs": 26.25,
+      "lines": [
+        {
+          "bar": 15,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 26.25
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 26.71875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 27.1875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 27.65625
+        },
+        {
+          "bar": 16,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 28.125
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 28.59375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 29.0625
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 29.53125
+        },
+        {
+          "bar": 17,
+          "kind": "phrase",
+          "phrase": 1,
+          "secs": 30.0
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 30.46875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 30.9375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 31.40625
+        },
+        {
+          "bar": 18,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 31.875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 32.34375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 32.8125
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 33.28125
+        },
+        {
+          "bar": 19,
+          "kind": "phrase",
+          "phrase": 2,
+          "secs": 33.75
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 34.21875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 34.6875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 35.15625
+        },
+        {
+          "bar": 20,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 35.625
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 36.09375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 36.5625
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 37.03125
+        },
+        {
+          "bar": 21,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 37.5
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 37.96875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 38.4375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 38.90625
+        },
+        {
+          "bar": 22,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 39.375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 39.84375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 40.3125
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 40.78125
+        },
+        {
+          "bar": 23,
+          "kind": "four",
+          "phrase": -1,
+          "secs": 41.25
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 41.71875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 42.1875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 42.65625
+        },
+        {
+          "bar": 24,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 43.125
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 43.59375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 44.0625
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 44.53125
+        },
+        {
+          "bar": 25,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 45.0
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 45.46875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 45.9375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 46.40625
+        },
+        {
+          "bar": 26,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 46.875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 47.34375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 47.8125
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 48.28125
+        },
+        {
+          "bar": 27,
+          "kind": "four",
+          "phrase": -1,
+          "secs": 48.75
+        }
+      ],
+      "name": "drop after a two-bar fill",
+      "phrases": [
+        {
+          "endSecs": 30,
+          "startSecs": 0
+        },
+        {
+          "endSecs": 33.75,
+          "startSecs": 30
+        },
+        {
+          "endSecs": 93.75,
+          "startSecs": 33.75
+        },
+        {
+          "endSecs": 124.6875,
+          "startSecs": 93.75
+        },
+        {
+          "endSecs": 184.6875,
+          "startSecs": 124.6875
+        }
+      ],
+      "positions": [
+        {
+          "bar": 16,
+          "beat": 3,
+          "beatsSinceAnchor": 62.0,
+          "secs": 29.0625,
+          "toFourBar": 2
+        },
+        {
+          "bar": 17,
+          "beat": 2,
+          "beatsSinceAnchor": 1.0,
+          "secs": 30.46875,
+          "toFourBar": 7
+        },
+        {
+          "bar": 20,
+          "beat": 2,
+          "beatsSinceAnchor": 5.5,
+          "secs": 36.328125,
+          "toFourBar": 11
+        },
+        {
+          "bar": 26,
+          "beat": 1,
+          "beatsSinceAnchor": 28.0,
+          "secs": 46.875,
+          "toFourBar": 4
+        }
+      ],
+      "toSecs": 48.75
+    },
+    {
+      "bpm": 128,
+      "firstBeatSecs": 0,
+      "fromSecs": 120,
+      "lines": [
+        {
+          "bar": 65,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 120.0
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 120.46875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 120.9375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 121.40625
+        },
+        {
+          "bar": 66,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 121.875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 122.34375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 122.8125
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 123.28125
+        },
+        {
+          "bar": 67,
+          "kind": "four",
+          "phrase": -1,
+          "secs": 123.75
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 124.21875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 124.6875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 125.15625
+        },
+        {
+          "bar": 68,
+          "kind": "phrase",
+          "phrase": 4,
+          "secs": 125.625
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 126.09375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 126.5625
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 127.03125
+        },
+        {
+          "bar": 69,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 127.5
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 127.96875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 128.4375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 128.90625
+        },
+        {
+          "bar": 70,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 129.375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 129.84375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 130.3125
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 130.78125
+        },
+        {
+          "bar": 71,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 131.25
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 131.71875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 132.1875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 132.65625
+        },
+        {
+          "bar": 72,
+          "kind": "four",
+          "phrase": -1,
+          "secs": 133.125
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 133.59375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 134.0625
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 134.53125
+        },
+        {
+          "bar": 73,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 135.0
+        }
+      ],
+      "name": "an off-bar phrase start snaps to the next bar line",
+      "phrases": [
+        {
+          "endSecs": 30,
+          "startSecs": 0
+        },
+        {
+          "endSecs": 33.75,
+          "startSecs": 30
+        },
+        {
+          "endSecs": 93.75,
+          "startSecs": 33.75
+        },
+        {
+          "endSecs": 124.6875,
+          "startSecs": 93.75
+        },
+        {
+          "endSecs": 184.6875,
+          "startSecs": 124.6875
+        }
+      ],
+      "positions": [
+        {
+          "bar": 67,
+          "beat": 2,
+          "beatsSinceAnchor": 65.0,
+          "secs": 124.21875,
+          "toFourBar": 3
+        },
+        {
+          "bar": 67,
+          "beat": 3,
+          "beatsSinceAnchor": 66.5,
+          "secs": 124.921875,
+          "toFourBar": 2
+        },
+        {
+          "bar": 70,
+          "beat": 2,
+          "beatsSinceAnchor": 9.2,
+          "secs": 129.9375,
+          "toFourBar": 7
+        }
+      ],
+      "toSecs": 135
+    },
+    {
+      "bpm": 124,
+      "firstBeatSecs": 0.3,
+      "fromSecs": 0,
+      "lines": [
+        {
+          "bar": 1,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 0.3
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 0.7838709677419355
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 1.267741935483871
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 1.7516129032258065
+        },
+        {
+          "bar": 2,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 2.235483870967742
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 2.7193548387096773
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 3.203225806451613
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 3.6870967741935483
+        },
+        {
+          "bar": 3,
+          "kind": "phrase",
+          "phrase": 0,
+          "secs": 4.170967741935484
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 4.65483870967742
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 5.138709677419355
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 5.62258064516129
+        },
+        {
+          "bar": 4,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 6.106451612903226
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 6.590322580645162
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 7.074193548387097
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 7.558064516129032
+        },
+        {
+          "bar": 5,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 8.041935483870969
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 8.525806451612905
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 9.00967741935484
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 9.493548387096775
+        },
+        {
+          "bar": 6,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 9.97741935483871
+        }
+      ],
+      "name": "before the first phrase",
+      "phrases": [
+        {
+          "endSecs": 60,
+          "startSecs": 3.203225806451613
+        }
+      ],
+      "positions": [
+        {
+          "bar": 1,
+          "beat": 1,
+          "beatsSinceAnchor": -7.586666666666666,
+          "secs": 0.5,
+          "toFourBar": 8
+        },
+        {
+          "bar": 2,
+          "beat": 2,
+          "beatsSinceAnchor": -2.6266666666666665,
+          "secs": 2.9,
+          "toFourBar": 3
+        },
+        {
+          "bar": 2,
+          "beat": 4,
+          "beatsSinceAnchor": -0.35333333333333317,
+          "secs": 4.0,
+          "toFourBar": 1
+        }
+      ],
+      "toSecs": 10
+    },
+    {
+      "bpm": 128,
+      "firstBeatSecs": 0,
+      "fromSecs": 3.75,
+      "lines": [
+        {
+          "bar": 3,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 3.75
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 4.21875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 4.6875
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 5.15625
+        },
+        {
+          "bar": 4,
+          "kind": "phrase",
+          "phrase": 0,
+          "secs": 5.625
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 6.09375
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 6.5625
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 7.03125
+        },
+        {
+          "bar": 5,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 7.5
+        }
+      ],
+      "name": "phrase start off the grid",
+      "phrases": [
+        {
+          "endSecs": 100,
+          "startSecs": 4.828125
+        }
+      ],
+      "positions": [
+        {
+          "bar": 3,
+          "beat": 4,
+          "beatsSinceAnchor": -1.0,
+          "secs": 5.15625,
+          "toFourBar": 1
+        },
+        {
+          "bar": 4,
+          "beat": 4,
+          "beatsSinceAnchor": 3.0,
+          "secs": 7.03125,
+          "toFourBar": 13
+        }
+      ],
+      "toSecs": 7.5
+    },
+    {
+      "bpm": 124,
+      "firstBeatSecs": 1.7516129032258063,
+      "fromSecs": 0,
+      "lines": [
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 0.2999999999999998
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 0.7838709677419353
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 1.2677419354838708
+        },
+        {
+          "bar": 1,
+          "kind": "phrase",
+          "phrase": 0,
+          "secs": 1.7516129032258063
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 2.235483870967742
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 2.7193548387096773
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 3.203225806451613
+        },
+        {
+          "bar": 2,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 3.6870967741935483
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 4.170967741935484
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 4.654838709677419
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 5.138709677419355
+        },
+        {
+          "bar": 3,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 5.622580645161291
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 6.106451612903227
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 6.590322580645161
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 7.074193548387097
+        },
+        {
+          "bar": 4,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 7.558064516129033
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 8.041935483870969
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 8.525806451612903
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 9.009677419354839
+        },
+        {
+          "bar": 5,
+          "kind": "four",
+          "phrase": -1,
+          "secs": 9.493548387096775
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 9.97741935483871
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 10.461290322580647
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 10.94516129032258
+        },
+        {
+          "bar": 6,
+          "kind": "bar",
+          "phrase": -1,
+          "secs": 11.429032258064517
+        },
+        {
+          "bar": 0,
+          "kind": "beat",
+          "phrase": -1,
+          "secs": 11.912903225806453
+        }
+      ],
+      "name": "intro pickup before the first downbeat",
+      "phrases": [
+        {
+          "endSecs": 32.71935483870968,
+          "startSecs": 0.3
+        },
+        {
+          "endSecs": 60,
+          "startSecs": 32.71935483870968
+        }
+      ],
+      "positions": [
+        {
+          "bar": 0,
+          "beat": 2,
+          "beatsSinceAnchor": -2.979333333333333,
+          "secs": 0.31,
+          "toFourBar": 3
+        },
+        {
+          "bar": 1,
+          "beat": 1,
+          "beatsSinceAnchor": 0.020666666666666684,
+          "secs": 1.7616129032258063,
+          "toFourBar": 16
+        },
+        {
+          "bar": 2,
+          "beat": 2,
+          "beatsSinceAnchor": 5.500000000000001,
+          "secs": 4.412903225806452,
+          "toFourBar": 11
+        }
+      ],
+      "toSecs": 12
+    }
+  ]
+}

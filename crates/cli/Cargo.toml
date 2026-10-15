@@ -1,0 +1,23 @@
+[package]
+name = "deckforge-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "deckforge-cli"
+path = "src/main.rs"
+
+[dependencies]
+deckforge-common.workspace = true
+deckforge-engine.workspace = true
+deckforge-analysis.workspace = true
+cpal.workspace = true
+anyhow.workspace = true
+parking_lot.workspace = true
+env_logger.workspace = true
+log.workspace = true
+deckforge-controller.workspace = true
+deckforge-library.workspace = true
+hound.workspace = true
