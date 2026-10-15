@@ -67,7 +67,7 @@
 
 <svelte:head><title>deckforge</title></svelte:head>
 
-<div class="app">
+<div class="app" style="--wave-share:{ui.waveformShare / 100}; --library-grow:{1 - ui.waveformShare / 100}">
   <TopBar />
   <div class="scrolls" class:beatmatch={ui.deckView === 'beatmatch'}>
     <ScrollWave deck={0} />
@@ -103,8 +103,8 @@
   }
   .scrolls {
     position: relative;
-    flex: 1 1 0;
-    min-height: 150px;
+    flex: var(--wave-share) 1 0;
+    min-height: 100px;
     display: flex;
     flex-direction: column;
     border: 8px solid var(--ink);

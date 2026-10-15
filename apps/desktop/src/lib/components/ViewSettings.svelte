@@ -24,6 +24,24 @@
       {/each}
     </div>
   </section>
+  <section class="height-setting">
+    <div class="height-heading">
+      <h3>Waveform height</h3>
+      <output for="waveform-height">{ui.waveformShare}%</output>
+    </div>
+    <p>Smaller waveforms give more vertical room to your library.</p>
+    <input
+      id="waveform-height"
+      type="range"
+      min="50"
+      max="100"
+      step="5"
+      value={ui.waveformShare}
+      aria-label="Waveform height"
+      oninput={(event) => ui.setWaveformShare(Number(event.currentTarget.value))}
+    />
+    <div class="range-labels" aria-hidden="true"><span>Compact</span><span>Full</span></div>
+  </section>
 </div>
 
 <style>
@@ -33,6 +51,37 @@
   section {
     display: grid;
     gap: 12px;
+  }
+  .height-setting {
+    display: grid;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .height-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .height-heading output {
+    color: var(--text);
+    font: 11.5px var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  p {
+    margin: -3px 0 0;
+    color: var(--faint);
+    font-size: 11.5px;
+  }
+  input[type='range'] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+  .range-labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--faint);
+    font-size: 10.5px;
   }
   h3 {
     margin: 0;
