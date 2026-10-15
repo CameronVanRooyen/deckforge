@@ -598,12 +598,13 @@ fn grid_quads(out: &mut QuadList, ctx: &SurfaceCtx<'_>, pps: f64, pos: f64, cx: 
     let tick = (wave_h * 0.11).round().max(3.0 * scale);
 
     if beat_px >= 6.0 * scale {
-        let faint = with_alpha(style.grid_beat, style.grid_beat[3] * 0.18);
+        let faint = with_alpha(style.grid_beat, style.grid_beat[3] * 0.3);
+        let minor_beat = with_alpha(style.grid_beat, style.grid_beat[3] * 0.18);
         for line in lines.iter().filter(|l| l.kind == LineKind::Beat) {
             let x = x_of(line.secs);
             if deck.beatmatch_view {
                 line_quad(out, x, 2.0, scale, top, wave_h, style.grid_shadow, snap);
-                line_quad(out, x, 0.75, scale, top, wave_h, faint, snap);
+                line_quad(out, x, 0.75, scale, top, wave_h, minor_beat, snap);
                 let marker_w = (5.0 * scale).min(beat_px * 0.55);
                 let marker_h = (4.0 * scale).min(marker_w * 0.8);
                 let outline = scale;
