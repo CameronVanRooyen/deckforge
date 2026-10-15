@@ -269,6 +269,13 @@ pub fn native_set_zoom(app: AppHandle, pps: f64, deck: Option<usize>) {
 }
 
 #[tauri::command]
+pub fn native_set_beatmatch_view(app: AppHandle, enabled: bool) {
+    if let Some(shared) = handle(&app) {
+        shared.update(|i| i.beatmatch_view = enabled);
+    }
+}
+
+#[tauri::command]
 pub fn native_drag_preview(app: AppHandle, deck: usize, secs: Option<f64>) {
     let Some(shared) = handle(&app) else { return };
     if deck > 1 {

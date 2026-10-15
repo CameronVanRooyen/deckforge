@@ -3,6 +3,7 @@
   import { engine } from '$lib/state/engine.svelte';
   import { library } from '$lib/state/library.svelte';
   import { ui } from '$lib/state/ui.svelte';
+  import { native, setNativeBeatmatchView } from '$lib/native/native.svelte';
   import { installShortcuts } from '$lib/shortcuts';
   import TopBar from '$lib/components/TopBar.svelte';
   import DeckTop from '$lib/components/DeckTop.svelte';
@@ -26,6 +27,10 @@
   $effect(() => {
     tokens;
     library.syncDeckInfo();
+  });
+
+  $effect(() => {
+    if (native.available) setNativeBeatmatchView(ui.deckView === 'beatmatch');
   });
 
   onMount(() => {
@@ -64,10 +69,11 @@
 
 <div class="app">
   <TopBar />
-  <div class="scrolls">
+  <div class="scrolls" class:beatmatch={ui.deckView === 'beatmatch'}>
     <ScrollWave deck={0} />
-    <PhaseMeter />
+    {#if ui.deckView === 'detailed'}<PhaseMeter />{/if}
     <ScrollWave deck={1} />
+    {#if ui.deckView === 'beatmatch'}<PhaseMeter />{/if}
     <div class="zoom"><ZoomControl /></div>
   </div>
   <div class="perf">
@@ -108,6 +114,10 @@
     right: 10px;
     top: 25px;
     z-index: 5;
+  }
+  .scrolls.beatmatch :global(.phase) {
+    border-top: 1px solid var(--line);
+    margin-top: 4px;
   }
   .perf {
     flex: none;

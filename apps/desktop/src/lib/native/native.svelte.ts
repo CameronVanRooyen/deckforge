@@ -115,6 +115,13 @@ export function setNativeZoom(ppsCss: number, deck?: DeckIndex) {
   send('native_set_zoom', { pps: ppsCss, deck: deck ?? null });
 }
 
+let lastBeatmatchView: boolean | undefined;
+export function setNativeBeatmatchView(enabled: boolean) {
+  if (lastBeatmatchView === enabled) return;
+  lastBeatmatchView = enabled;
+  send('native_set_beatmatch_view', { enabled });
+}
+
 /** Pins the native playhead to `secs` while dragging; `null` releases it. No-op without the native layer. */
 export function nativeDragPreview(deck: DeckIndex, secs: number | null) {
   send('native_drag_preview', { deck, secs });

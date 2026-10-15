@@ -360,6 +360,7 @@ pub fn run() {
             native_view::native_set_rects,
             native_view::native_set_style,
             native_view::native_set_zoom,
+            native_view::native_set_beatmatch_view,
             native_view::native_drag_preview,
             native_view::native_set_latency,
             native_view::native_reload_track,

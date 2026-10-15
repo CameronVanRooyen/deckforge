@@ -115,6 +115,7 @@ pub struct DeckView {
     pub hot_cues: [Option<HotCueView>; HOT_CUE_SLOTS],
     pub loop_region: Option<LoopView>,
     pub master: bool,
+    pub beatmatch_view: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -546,6 +547,8 @@ fn level_look(style: &Style, level: BarLevel, deck: Rgba, phrase: Rgba) -> Level
     }
 }
 
+const BEAT_ONE: Rgba = [250.0 / 255.0, 204.0 / 255.0, 21.0 / 255.0, 1.0];
+
 /// Beat ticks and the phrase-anchored bar hierarchy (bar, 4, 8, 16, phrase) with `n/len` labels.
 fn grid_quads(out: &mut QuadList, ctx: &SurfaceCtx<'_>, pps: f64, pos: f64, cx: f64, top: f64) {
     let SurfaceCtx {
@@ -608,8 +611,9 @@ fn grid_quads(out: &mut QuadList, ctx: &SurfaceCtx<'_>, pps: f64, pos: f64, cx: 
                     snap,
                 );
             }
-            line_quad(out, x, 1.0, scale, top, tick, style.grid_beat, snap);
-            line_quad(out, x, 1.0, scale, h - tick, tick, style.grid_beat, snap);
+            let beat_color = if deck.beatmatch_view { faint } else { style.grid_beat };
+            line_quad(out, x, 1.0, scale, top, tick, beat_color, snap);
+            line_quad(out, x, 1.0, scale, h - tick, tick, beat_color, snap);
         }
     }
 
@@ -622,12 +626,42 @@ fn grid_quads(out: &mut QuadList, ctx: &SurfaceCtx<'_>, pps: f64, pos: f64, cx: 
         if !visible(mark.level) {
             continue;
         }
+        let x = x_of(line.secs);
+        if deck.beatmatch_view {
+            let phrase_start = mark.level == BarLevel::Phrase;
+            line_quad(
+                out,
+                x,
+                if phrase_start { 7.0 } else { 4.5 },
+                scale,
+                top,
+                wave_h,
+                style.grid_shadow,
+                snap,
+            );
+            line_quad(
+                out,
+                x,
+                if phrase_start { 3.5 } else { 1.75 },
+                scale,
+                top,
+                wave_h,
+                BEAT_ONE,
+                snap,
+            );
+            if phrase_start {
+                let s = 8.0 * scale;
+                let t = 5.0 * scale;
+                out.triangle(x - s * 0.5, top, s, t, true, BEAT_ONE);
+                out.triangle(x - s * 0.5, h - t, s, t, false, BEAT_ONE);
+            }
+            continue;
+        }
         let phrase = mark
             .phrase
             .and_then(|i| phrases.get(i))
             .map_or(deck_color, |p| phrase_color(style, p.kind));
         let look = level_look(style, mark.level, deck_color, phrase);
-        let x = x_of(line.secs);
         let left = line_quad(out, x, look.width_css, scale, top, wave_h, look.color, snap);
         let width = (look.width_css * scale).round().max(1.0);
         if mark.level == BarLevel::Bar {
@@ -1391,6 +1425,59 @@ mod tests {
             "the old global lattice line must be gone"
         );
         assert!(full_height_at(&q, x_of(22.0 * bar), top, style.grid_four));
+    }
+
+    #[test]
+    fn beatmatch_grid_emphasizes_downbeats_without_bar_counts() {
+        let style = Style::default();
+        let case = crate::bars::fixtures::load()
+            .into_iter()
+            .find(|c| c.name == "drop after a two-bar fill")
+            .unwrap();
+        let d = DeckView {
+            loaded: true,
+            token: 1,
+            pos_secs: 20.0,
+            duration_secs: 240.0,
+            grid: Some(case.grid),
+            beatmatch_view: true,
+            ..Default::default()
+        };
+        let mut q = QuadList::default();
+        let pps = 20.0;
+        let cx = 400.0;
+        grid_quads(
+            &mut q,
+            &SurfaceCtx {
+                w: 800.0,
+                h: 200.0,
+                deck: &d,
+                deck_index: 0,
+                phrases: &case.phrases,
+                style: &style,
+                scale: 1.0,
+                ghost: None,
+            },
+            pps,
+            d.pos_secs,
+            cx,
+            16.0,
+        );
+        for bar in [18.0, 19.0] {
+            let x = cx + (bar * 60.0 / 128.0 * 4.0 - d.pos_secs) * pps;
+            assert!(q.items.iter().any(|i| {
+                i.color == BEAT_ONE
+                    && i.kind[0] == KIND_RECT
+                    && (f64::from(i.rect[0]) + f64::from(i.rect[2]) * 0.5 - x).abs() < 1e-3
+            }));
+        }
+        assert!(q.items.iter().any(|i| i.color == BEAT_ONE && i.kind[0] == KIND_TRI_DOWN));
+        assert!(q.items.iter().any(|i| i.color == faint_grid_beat(&style)));
+        assert!(q.items.iter().all(|i| i.kind[0] != KIND_GLYPH));
+    }
+
+    fn faint_grid_beat(style: &Style) -> Rgba {
+        with_alpha(style.grid_beat, style.grid_beat[3] * 0.3)
     }
 
     #[test]

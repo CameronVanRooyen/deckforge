@@ -29,7 +29,7 @@ fn configure(surface: &wgpu::Surface<'static>, gpu: &Gpu, format: wgpu::TextureF
     );
 }
 
-fn deck_view(d: &DeckSnapshot, pos: f64, master: bool) -> DeckView {
+fn deck_view(d: &DeckSnapshot, pos: f64, master: bool, beatmatch_view: bool) -> DeckView {
     let mut view = DeckView {
         loaded: d.loaded,
         token: d.track_token,
@@ -40,6 +40,7 @@ fn deck_view(d: &DeckSnapshot, pos: f64, master: bool) -> DeckView {
         cue_secs: d.cue_secs,
         grid: d.has_grid.then_some(GridView { bpm: d.grid_bpm, first_beat_secs: d.first_beat_secs }),
         master,
+        beatmatch_view,
         ..Default::default()
     };
     for (dst, cue) in view.hot_cues.iter_mut().zip(&d.hot_cues) {
@@ -129,8 +130,8 @@ impl RenderThread {
             let snapshot = work.snapshot.map(|t| t.snapshot).unwrap_or_default();
             let display_time = now + refresh_secs - work.latency_secs;
             let decks = [
-                deck_view(&snapshot.decks[0], clocks[0].position(display_time), snapshot.master_deck == Some(0u8)),
-                deck_view(&snapshot.decks[1], clocks[1].position(display_time), snapshot.master_deck == Some(1u8)),
+                deck_view(&snapshot.decks[0], clocks[0].position(display_time), snapshot.master_deck == Some(0u8), work.beatmatch_view),
+                deck_view(&snapshot.decks[1], clocks[1].position(display_time), snapshot.master_deck == Some(1u8), work.beatmatch_view),
             ];
             let surfaces = place(&work.rects, work.scale, configured);
             let input = FrameInput {

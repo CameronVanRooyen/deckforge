@@ -39,7 +39,7 @@
   </div>
   {#if native.ready && !native.available}
     <div class="layer">
-      <CanvasLayer label="" draw={(ctx, W, H, dpr) => renderer.drawOverlay(ctx, W, H, dpr, ZOOM_LEVELS[ui.zoomIndex])} />
+      <CanvasLayer label="" draw={(ctx, W, H, dpr) => renderer.drawOverlay(ctx, W, H, dpr, ZOOM_LEVELS[ui.zoomIndex], ui.deckView === 'beatmatch')} />
     </div>
   {/if}
   <div
