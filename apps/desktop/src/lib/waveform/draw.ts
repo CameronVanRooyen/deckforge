@@ -102,13 +102,16 @@ const INK = '#09090b';
 const GRID = {
   beat: 'rgba(250,250,250,0.3)',
   beatFaint: 'rgba(250,250,250,0.09)',
+  beatmatchMinor: 'rgba(250,250,250,0.18)',
+  beatmatchMinorMarker: 'rgba(250,250,250,0.82)',
+  beatmatchDownbeat: '#fafafa',
+  beatmatchDownbeatMarker: '#facc15',
   bar: 'rgba(250,250,250,0.5)',
   four: 'rgba(250,250,250,0.78)',
   shadow: 'rgba(9,9,11,0.6)',
   marker: 'rgba(250,250,250,0.72)',
   label: 'rgba(212,212,216,0.6)',
   aligned: '#4ade80',
-  beatOne: '#facc15',
 };
 
 export const bandHeight = (hasPhrases: boolean, dpr: number) => (hasPhrases ? Math.round(BAND_CSS * dpr) : 0);
@@ -163,6 +166,23 @@ function triangle(ctx: CanvasRenderingContext2D, cx: number, y: number, w: numbe
   ctx.lineTo(cx, y + (down ? h : 0));
   ctx.closePath();
   ctx.fill();
+}
+
+function outlinedTriangle(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  y: number,
+  w: number,
+  h: number,
+  down: boolean,
+  fill: string,
+  outline: string,
+  outlineWidth: number,
+) {
+  ctx.fillStyle = outline;
+  triangle(ctx, cx, down ? y : y - outlineWidth, w + outlineWidth * 2, h + outlineWidth, down);
+  ctx.fillStyle = fill;
+  triangle(ctx, cx, y, w, h, down);
 }
 
 function fillMarker(ctx: CanvasRenderingContext2D, x: number, end: number, band: number, dpr: number, color: string) {
@@ -401,11 +421,33 @@ export class ScrollerRenderer {
       for (const l of lines) {
         if (l.kind !== 'beat') continue;
         const x = xOfLine(l.secs);
+        if (beatmatch) {
+          ctx.fillStyle = GRID.shadow;
+          line(x, 2, top, waveH);
+          ctx.fillStyle = GRID.beatmatchMinor;
+          line(x, 0.75, top, waveH);
+          const markerW = Math.min(5 * dpr, beatPx * 0.55);
+          const markerH = Math.min(4 * dpr, markerW * 0.8);
+          const outline = 1 * dpr;
+          outlinedTriangle(ctx, x, top, markerW, markerH, true, GRID.beatmatchMinorMarker, GRID.shadow, outline);
+          outlinedTriangle(
+            ctx,
+            x,
+            H - markerH,
+            markerW,
+            markerH,
+            false,
+            GRID.beatmatchMinorMarker,
+            GRID.shadow,
+            outline,
+          );
+          continue;
+        }
         if (beatPx >= 22 * dpr) {
           ctx.fillStyle = GRID.beatFaint;
           line(x, 1, top + tick, waveH - 2 * tick);
         }
-        ctx.fillStyle = beatmatch ? GRID.beatFaint : GRID.beat;
+        ctx.fillStyle = GRID.beat;
         line(x, 1, top, tick);
         line(x, 1, H - tick, tick);
       }
@@ -420,13 +462,36 @@ export class ScrollerRenderer {
       const x = xOfLine(l.secs);
       if (beatmatch) {
         const phraseStart = mark.level === 'phrase';
+        const markerW = (phraseStart ? 9 : 7) * dpr;
+        const markerH = (phraseStart ? 6 : 5) * dpr;
+        const outline = 1.25 * dpr;
         ctx.fillStyle = GRID.shadow;
         line(x, phraseStart ? 7 : 4.5, top, waveH);
-        ctx.fillStyle = GRID.beatOne;
+        ctx.fillStyle = GRID.beatmatchDownbeat;
         line(x, phraseStart ? 3.5 : 1.75, top, waveH);
-        if (phraseStart) {
-          triangle(ctx, x, top, 8 * dpr, 5 * dpr, true);
-          triangle(ctx, x, H - 5 * dpr, 8 * dpr, 5 * dpr, false);
+        if (phraseStart || barPx >= 14 * dpr) {
+          outlinedTriangle(
+            ctx,
+            x,
+            top,
+            markerW,
+            markerH,
+            true,
+            GRID.beatmatchDownbeatMarker,
+            GRID.shadow,
+            outline,
+          );
+          outlinedTriangle(
+            ctx,
+            x,
+            H - markerH,
+            markerW,
+            markerH,
+            false,
+            GRID.beatmatchDownbeatMarker,
+            GRID.shadow,
+            outline,
+          );
         }
         continue;
       }

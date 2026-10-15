@@ -547,7 +547,9 @@ fn level_look(style: &Style, level: BarLevel, deck: Rgba, phrase: Rgba) -> Level
     }
 }
 
-const BEAT_ONE: Rgba = [250.0 / 255.0, 204.0 / 255.0, 21.0 / 255.0, 1.0];
+const BEAT_ONE_LINE: Rgba = [250.0 / 255.0, 250.0 / 255.0, 250.0 / 255.0, 1.0];
+const BEAT_ONE_MARKER: Rgba = [250.0 / 255.0, 204.0 / 255.0, 21.0 / 255.0, 1.0];
+const MINOR_BEAT_MARKER: Rgba = [250.0 / 255.0, 250.0 / 255.0, 250.0 / 255.0, 0.82];
 
 /// Beat ticks and the phrase-anchored bar hierarchy (bar, 4, 8, 16, phrase) with `n/len` labels.
 fn grid_quads(out: &mut QuadList, ctx: &SurfaceCtx<'_>, pps: f64, pos: f64, cx: f64, top: f64) {
@@ -596,9 +598,49 @@ fn grid_quads(out: &mut QuadList, ctx: &SurfaceCtx<'_>, pps: f64, pos: f64, cx: 
     let tick = (wave_h * 0.11).round().max(3.0 * scale);
 
     if beat_px >= 6.0 * scale {
-        let faint = with_alpha(style.grid_beat, style.grid_beat[3] * 0.3);
+        let faint = with_alpha(style.grid_beat, style.grid_beat[3] * 0.18);
         for line in lines.iter().filter(|l| l.kind == LineKind::Beat) {
             let x = x_of(line.secs);
+            if deck.beatmatch_view {
+                line_quad(out, x, 2.0, scale, top, wave_h, style.grid_shadow, snap);
+                line_quad(out, x, 0.75, scale, top, wave_h, faint, snap);
+                let marker_w = (5.0 * scale).min(beat_px * 0.55);
+                let marker_h = (4.0 * scale).min(marker_w * 0.8);
+                let outline = scale;
+                out.triangle(
+                    x - (marker_w + outline * 2.0) * 0.5,
+                    top,
+                    marker_w + outline * 2.0,
+                    marker_h + outline,
+                    true,
+                    style.grid_shadow,
+                );
+                out.triangle(
+                    x - marker_w * 0.5,
+                    top,
+                    marker_w,
+                    marker_h,
+                    true,
+                    MINOR_BEAT_MARKER,
+                );
+                out.triangle(
+                    x - (marker_w + outline * 2.0) * 0.5,
+                    h - marker_h - outline,
+                    marker_w + outline * 2.0,
+                    marker_h + outline,
+                    false,
+                    style.grid_shadow,
+                );
+                out.triangle(
+                    x - marker_w * 0.5,
+                    h - marker_h,
+                    marker_w,
+                    marker_h,
+                    false,
+                    MINOR_BEAT_MARKER,
+                );
+                continue;
+            }
             if beat_px >= 22.0 * scale {
                 line_quad(
                     out,
@@ -611,9 +653,8 @@ fn grid_quads(out: &mut QuadList, ctx: &SurfaceCtx<'_>, pps: f64, pos: f64, cx: 
                     snap,
                 );
             }
-            let beat_color = if deck.beatmatch_view { faint } else { style.grid_beat };
-            line_quad(out, x, 1.0, scale, top, tick, beat_color, snap);
-            line_quad(out, x, 1.0, scale, h - tick, tick, beat_color, snap);
+            line_quad(out, x, 1.0, scale, top, tick, style.grid_beat, snap);
+            line_quad(out, x, 1.0, scale, h - tick, tick, style.grid_beat, snap);
         }
     }
 
@@ -629,6 +670,9 @@ fn grid_quads(out: &mut QuadList, ctx: &SurfaceCtx<'_>, pps: f64, pos: f64, cx: 
         let x = x_of(line.secs);
         if deck.beatmatch_view {
             let phrase_start = mark.level == BarLevel::Phrase;
+            let marker_w = if phrase_start { 9.0 } else { 7.0 } * scale;
+            let marker_h = if phrase_start { 6.0 } else { 5.0 } * scale;
+            let outline = 1.25 * scale;
             line_quad(
                 out,
                 x,
@@ -646,14 +690,42 @@ fn grid_quads(out: &mut QuadList, ctx: &SurfaceCtx<'_>, pps: f64, pos: f64, cx: 
                 scale,
                 top,
                 wave_h,
-                BEAT_ONE,
+                BEAT_ONE_LINE,
                 snap,
             );
-            if phrase_start {
-                let s = 8.0 * scale;
-                let t = 5.0 * scale;
-                out.triangle(x - s * 0.5, top, s, t, true, BEAT_ONE);
-                out.triangle(x - s * 0.5, h - t, s, t, false, BEAT_ONE);
+            if phrase_start || bar_px >= 14.0 * scale {
+                out.triangle(
+                    x - (marker_w + outline * 2.0) * 0.5,
+                    top,
+                    marker_w + outline * 2.0,
+                    marker_h + outline,
+                    true,
+                    style.grid_shadow,
+                );
+                out.triangle(
+                    x - marker_w * 0.5,
+                    top,
+                    marker_w,
+                    marker_h,
+                    true,
+                    BEAT_ONE_MARKER,
+                );
+                out.triangle(
+                    x - (marker_w + outline * 2.0) * 0.5,
+                    h - marker_h - outline,
+                    marker_w + outline * 2.0,
+                    marker_h + outline,
+                    false,
+                    style.grid_shadow,
+                );
+                out.triangle(
+                    x - marker_w * 0.5,
+                    h - marker_h,
+                    marker_w,
+                    marker_h,
+                    false,
+                    BEAT_ONE_MARKER,
+                );
             }
             continue;
         }
@@ -1466,18 +1538,48 @@ mod tests {
         for bar in [18.0, 19.0] {
             let x = cx + (bar * 60.0 / 128.0 * 4.0 - d.pos_secs) * pps;
             assert!(q.items.iter().any(|i| {
-                i.color == BEAT_ONE
+                i.color == BEAT_ONE_LINE
                     && i.kind[0] == KIND_RECT
+                    && f64::from(i.rect[3]) > 100.0
                     && (f64::from(i.rect[0]) + f64::from(i.rect[2]) * 0.5 - x).abs() < 1e-3
             }));
         }
-        assert!(q.items.iter().any(|i| i.color == BEAT_ONE && i.kind[0] == KIND_TRI_DOWN));
-        assert!(q.items.iter().any(|i| i.color == faint_grid_beat(&style)));
+        assert!(
+            q.items
+                .iter()
+                .any(|i| i.color == BEAT_ONE_MARKER && i.kind[0] == KIND_TRI_DOWN)
+        );
+        assert!(
+            q.items
+                .iter()
+                .any(|i| i.color == BEAT_ONE_MARKER && i.kind[0] == KIND_TRI_UP)
+        );
+        assert!(
+            q.items
+                .iter()
+                .any(|i| i.color == MINOR_BEAT_MARKER && i.kind[0] == KIND_TRI_DOWN)
+        );
+        assert!(
+            q.items
+                .iter()
+                .any(|i| i.color == MINOR_BEAT_MARKER && i.kind[0] == KIND_TRI_UP)
+        );
+        let minor_guides: Vec<_> = q
+            .items
+            .iter()
+            .filter(|i| {
+                i.color == faint_grid_beat(&style)
+                    && i.kind[0] == KIND_RECT
+                    && f64::from(i.rect[3]) > 100.0
+            })
+            .collect();
+        assert!(!minor_guides.is_empty());
+        assert!(minor_guides.iter().all(|i| i.rect[2] <= 1.0));
         assert!(q.items.iter().all(|i| i.kind[0] != KIND_GLYPH));
     }
 
     fn faint_grid_beat(style: &Style) -> Rgba {
-        with_alpha(style.grid_beat, style.grid_beat[3] * 0.3)
+        with_alpha(style.grid_beat, style.grid_beat[3] * 0.18)
     }
 
     #[test]
